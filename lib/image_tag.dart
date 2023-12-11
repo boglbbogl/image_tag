@@ -1,3 +1,3 @@
 library image_tag;
 
-/// A Calculator.
+export 'src/image_tag.dart';

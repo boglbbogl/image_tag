@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:image_tag/src/tag_itme.dart';
+import 'package:image_tag/src/tag_item.dart';
 
 class ImageTag extends StatefulWidget {
   final Image image;
-  final List<TagItem>? tagItems;
+  final List<TagItem> tagItems;
   final double itemSize;
   final Widget? itemChild;
   final Decoration? itemDecoration;
+  final Function(TagItem, double, double)? onAdd;
+  final Function(List<TagItem>, double, double, int)? onUpdate;
   const ImageTag({
     super.key,
     required this.image,
-    this.tagItems,
+    required this.tagItems,
     this.itemSize = 20,
     this.itemChild,
     this.itemDecoration,
+    this.onAdd,
+    this.onUpdate,
   });
 
   @override
@@ -26,7 +30,7 @@ class _ImageTagState extends State<ImageTag> {
   late Size imageSize;
   Size? widgetSize;
 
-  ValueNotifier<List<TagItem>> items = ValueNotifier([]);
+  ValueNotifier<List<TagItem>> tagItems = ValueNotifier([]);
 
   @override
   void initState() {
@@ -44,7 +48,7 @@ class _ImageTagState extends State<ImageTag> {
     _setTagItem();
   }
 
-  void _setTagItem() => items.value = widget.tagItems ?? items.value;
+  void _setTagItem() => tagItems.value = widget.tagItems;
 
   void _setTagWidget() {
     tagWidget = Container(
@@ -79,22 +83,27 @@ class _ImageTagState extends State<ImageTag> {
     if (widgetSize != null) {
       double x = details.localPosition.dx / widgetSize!.width;
       double y = details.localPosition.dy / widgetSize!.height;
-      items.value = List.from(items.value)
-        ..add(TagItem(x: x, y: y, child: tagWidget));
+      final TagItem item = TagItem(x: x, y: y, child: tagWidget);
+      if (widget.onAdd != null) {
+        widget.onAdd!(item, x, y);
+      }
     }
   }
 
   void _itemUpdate(DragUpdateDetails details, int index) {
     if (widgetSize != null) {
-      TagItem item = items.value[index];
+      List<TagItem> items = tagItems.value;
+      TagItem item = items[index];
       double dx = (item.x * widgetSize!.width) + details.delta.dx;
       double dy = (item.y * widgetSize!.height) + details.delta.dy;
-      items.value = List.from(items.value)
+      double x = dx / widgetSize!.width;
+      double y = dy / widgetSize!.height;
+      items = List.from(items)
         ..removeAt(index)
-        ..insert(
-          index,
-          item.copyWith(x: dx / widgetSize!.width, y: dy / widgetSize!.height),
-        );
+        ..insert(index, item.copyWith(x: x, y: y));
+      if (widget.onUpdate != null) {
+        widget.onUpdate!(items, x, y, index);
+      }
     }
   }
 
@@ -104,10 +113,10 @@ class _ImageTagState extends State<ImageTag> {
       width: widgetSize != null ? widgetSize!.width : null,
       height: widgetSize != null ? widgetSize!.height : null,
       child: ValueListenableBuilder<List<TagItem>>(
-          valueListenable: items,
+          valueListenable: tagItems,
           builder: (
             BuildContext context,
-            List<TagItem> tags,
+            List<TagItem> items,
             Widget? child,
           ) {
             return Stack(
@@ -115,7 +124,6 @@ class _ImageTagState extends State<ImageTag> {
                 GestureDetector(
                   key: widgetKey,
                   onTapDown: (TapDownDetails details) => _onShortTap(details),
-                  onLongPressEnd: (_) {},
                   child: SizedBox(
                     width: widgetSize != null ? widgetSize!.width : null,
                     height: widgetSize != null ? widgetSize!.height : null,
@@ -124,16 +132,16 @@ class _ImageTagState extends State<ImageTag> {
                 ),
                 if (widgetSize != null) ...[
                   ...List.generate(
-                      tags.length,
+                      items.length,
                       (index) => Positioned(
-                          left: (widgetSize!.width * tags[index].x) -
+                          left: (widgetSize!.width * items[index].x) -
                               (widget.itemSize / 2),
-                          top: (widgetSize!.height * tags[index].y) -
+                          top: (widgetSize!.height * items[index].y) -
                               (widget.itemSize / 2),
                           child: GestureDetector(
                             onPanUpdate: (DragUpdateDetails details) =>
                                 _itemUpdate(details, index),
-                            child: tags[index].child ?? tagWidget,
+                            child: items[index].child ?? tagWidget,
                           ))),
                 ],
               ],

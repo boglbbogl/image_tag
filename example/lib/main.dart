@@ -15,6 +15,20 @@ class ExampleImageTag extends StatefulWidget {
 }
 
 class _ExampleImageTagState extends State<ExampleImageTag> {
+  List<TagItem> items = [];
+
+  void _add(TagItem item) {
+    setState(() {
+      items = List.from(items)..add(item);
+    });
+  }
+
+  void _update(List<TagItem> items) {
+    setState(() {
+      this.items = items;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,9 +38,12 @@ class _ExampleImageTagState extends State<ExampleImageTag> {
       body: Column(
         children: [
           ImageTag(
+            tagItems: items,
             image: Image.network(
               "https://velog.velcdn.com/images/tygerhwang/post/11512c89-ada4-47d3-a71e-286a37932d16/image.avif",
             ),
+            onAdd: (TagItem item, _, __) => _add(item),
+            onUpdate: (List<TagItem> items, _, __, ___) => _update(items),
           ),
         ],
       ),

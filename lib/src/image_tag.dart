@@ -1,23 +1,33 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:image_tag/src/tag_item.dart';
+import 'package:image_tag/image_tag.dart';
+import 'package:image_tag/src/tooltip_mode.dart';
 
 class ImageTag extends StatefulWidget {
+  final bool debug;
   final Image image;
   final List<TagItem> tagItems;
-  final double itemSize;
-  final Widget? itemChild;
-  final Decoration? itemDecoration;
-  final Function(TagItem, double, double)? onAdd;
-  final Function(List<TagItem>, double, double, int)? onUpdate;
+  final Function(TagItem)? onAdd;
+  final Function(List<TagItem>, TagItem)? onTagUpdate;
+  final Function(TagItem)? onTagTap;
+  final Function(TagItem)? onTagLongTap;
+  final Function(double, double)? customAdd;
+  final Function(double, double, int)? customTagUpdate;
+  final Function(double, double, int)? customTagTap;
+  final Function(double, double, int)? customTagLongTap;
   const ImageTag({
     super.key,
+    this.debug = false,
     required this.image,
     required this.tagItems,
-    this.itemSize = 20,
-    this.itemChild,
-    this.itemDecoration,
     this.onAdd,
-    this.onUpdate,
+    this.onTagUpdate,
+    this.onTagTap,
+    this.onTagLongTap,
+    this.customAdd,
+    this.customTagUpdate,
+    this.customTagTap,
+    this.customTagLongTap,
   });
 
   @override
@@ -26,11 +36,13 @@ class ImageTag extends StatefulWidget {
 
 class _ImageTagState extends State<ImageTag> {
   final GlobalKey widgetKey = GlobalKey();
-  late Widget tagWidget;
+  late TagContainer tagWidget;
   late Size imageSize;
   Size? widgetSize;
 
   ValueNotifier<List<TagItem>> tagItems = ValueNotifier([]);
+
+  TagItem? selected;
 
   @override
   void initState() {
@@ -50,16 +62,7 @@ class _ImageTagState extends State<ImageTag> {
 
   void _setTagItem() => tagItems.value = widget.tagItems;
 
-  void _setTagWidget() {
-    tagWidget = Container(
-      width: widget.itemSize,
-      height: widget.itemSize,
-      decoration: widget.itemDecoration ??
-          BoxDecoration(
-              borderRadius: BorderRadius.circular(20), color: Colors.lightBlue),
-      child: widget.itemChild,
-    );
-  }
+  void _setTagWidget() => tagWidget = const TagContainer();
 
   void _imageListener() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -79,30 +82,86 @@ class _ImageTagState extends State<ImageTag> {
     });
   }
 
-  void _onShortTap(TapDownDetails details) {
+  void _onAdd(TapDownDetails details) {
     if (widgetSize != null) {
       double x = details.localPosition.dx / widgetSize!.width;
       double y = details.localPosition.dy / widgetSize!.height;
       final TagItem item = TagItem(x: x, y: y, child: tagWidget);
       if (widget.onAdd != null) {
-        widget.onAdd!(item, x, y);
+        widget.onAdd!(item);
+        _log("[onAdd] $item");
+      }
+      if (widget.customAdd != null) {
+        widget.customAdd!(x, y);
+        _log("[onAdd] x : $x, y : $y");
       }
     }
   }
 
-  void _itemUpdate(DragUpdateDetails details, int index) {
+  void _onTagTap(int index) {
+    TagItem item = tagItems.value[index];
+
+    if (widget.onTagTap != null) {
+      widget.onTagTap!(item);
+      _log("[onTagTap] $item");
+    }
+    if (widget.customTagTap != null) {
+      widget.customTagTap!(item.x, item.y, index);
+      _log("[onTagTap] x : ${item.x}, y : ${item.y}, index : $index");
+    }
+    setState(() {
+      selected = item.copyWith(child: item.child ?? tagWidget);
+    });
+  }
+
+  void _onTagLongTap(int index) {
+    TagItem item = tagItems.value[index];
+    if (widget.onTagLongTap != null) {
+      widget.onTagLongTap!(item);
+      _log("[onTagLongTap] $item");
+    }
+    if (widget.customTagLongTap != null) {
+      widget.customTagLongTap!(item.x, item.y, index);
+      _log("[onTagLongTap] x : ${item.x}, y : ${item.y}, index : $index");
+    }
+  }
+
+  void _onTagUpdate(DragUpdateDetails details, int index) {
     if (widgetSize != null) {
       List<TagItem> items = tagItems.value;
       TagItem item = items[index];
       double dx = (item.x * widgetSize!.width) + details.delta.dx;
       double dy = (item.y * widgetSize!.height) + details.delta.dy;
-      double x = dx / widgetSize!.width;
-      double y = dy / widgetSize!.height;
+      double x = switch (dx / widgetSize!.width) {
+        < 0 => 0,
+        > 1 => 1,
+        _ => dx / widgetSize!.width,
+      };
+      double y = switch (dy / widgetSize!.height) {
+        < 0 => 0,
+        > 1 => 1,
+        _ => dy / widgetSize!.height,
+      };
+      item = item.copyWith(x: x, y: y, child: tagWidget);
       items = List.from(items)
         ..removeAt(index)
-        ..insert(index, item.copyWith(x: x, y: y));
-      if (widget.onUpdate != null) {
-        widget.onUpdate!(items, x, y, index);
+        ..insert(index, item);
+      if (widget.onTagUpdate != null) {
+        widget.onTagUpdate!(items, item);
+        _log(
+            "[onTagUpdate] items : ${items.length}, ${item.copyWith(x: x, y: y, child: tagWidget)}");
+      }
+      if (widget.customTagUpdate != null) {
+        widget.customTagUpdate!(x, y, index);
+        _log("[onTagUpdate] x : $x, y : $y, index : $index");
+      }
+    }
+  }
+
+  void _log(String log) {
+    if (kDebugMode) {
+      if (widget.debug) {
+        print(log);
       }
     }
   }
@@ -123,7 +182,9 @@ class _ImageTagState extends State<ImageTag> {
               children: [
                 GestureDetector(
                   key: widgetKey,
-                  onTapDown: (TapDownDetails details) => _onShortTap(details),
+                  onTapDown: widget.onAdd != null || widget.customAdd != null
+                      ? (TapDownDetails details) => _onAdd(details)
+                      : null,
                   child: SizedBox(
                     width: widgetSize != null ? widgetSize!.width : null,
                     height: widgetSize != null ? widgetSize!.height : null,
@@ -135,18 +196,114 @@ class _ImageTagState extends State<ImageTag> {
                       items.length,
                       (index) => Positioned(
                           left: (widgetSize!.width * items[index].x) -
-                              (widget.itemSize / 2),
+                              ((items[index].child ?? tagWidget).getWidth(
+                                      MediaQuery.of(context).size.width) /
+                                  2),
                           top: (widgetSize!.height * items[index].y) -
-                              (widget.itemSize / 2),
+                              ((items[index].child ?? tagWidget).getHeight(
+                                      MediaQuery.of(context).size.width) /
+                                  2),
                           child: GestureDetector(
-                            onPanUpdate: (DragUpdateDetails details) =>
-                                _itemUpdate(details, index),
+                            onLongPress: widget.onTagLongTap != null ||
+                                    widget.customTagLongTap != null
+                                ? () => _onTagLongTap(index)
+                                : null,
+                            onTap: widget.onTagTap != null ||
+                                    widget.customTagTap != null
+                                ? () => _onTagTap(index)
+                                : null,
+                            onPanUpdate: widget.onTagUpdate != null ||
+                                    widget.customTagUpdate != null
+                                ? (DragUpdateDetails details) =>
+                                    _onTagUpdate(details, index)
+                                : null,
                             child: items[index].child ?? tagWidget,
                           ))),
+                ],
+                if (widgetSize != null) ...[
+                  CustomPaint(
+                    painter: _TooltipPainter(
+                      widgetSize: widgetSize,
+                      item: selected,
+                      width: MediaQuery.of(context).size.width,
+                    ),
+                  ),
                 ],
               ],
             );
           }),
     );
   }
+}
+
+class _TooltipPainter extends CustomPainter {
+  final double width;
+  final Size? widgetSize;
+  final TagItem? item;
+
+  const _TooltipPainter({
+    required this.widgetSize,
+    required this.item,
+    required this.width,
+  });
+  @override
+  void paint(Canvas canvas, _) {
+    if (item != null && widgetSize != null) {
+      Paint paint = Paint()..color = Colors.red;
+
+      int arrowSize = 15;
+      double posX = widgetSize!.width * item!.x;
+      double posY = widgetSize!.height * item!.y;
+      double tagWidth = item!.child!.getWidth(width);
+      double tagHeight = item!.child!.getHeight(width);
+      (Path, TooltipMode) settings =
+          _drawArrow(arrowSize, posX, posY, tagWidth, tagHeight);
+      canvas.drawPath(settings.$1, paint);
+      _drawBox(settings.$2);
+    }
+  }
+
+  _drawBox(TooltipMode mode) {}
+
+  (Path, TooltipMode) _drawArrow(int arrowSize, double posX, double posY,
+      double tagWidth, double tagHeight) {
+    Path path = Path();
+
+    if (posX < arrowSize && posY > arrowSize) {
+      path.moveTo(posX, posY);
+      path.lineTo(posX, posY - arrowSize);
+      path.lineTo(posX + arrowSize + (tagWidth / 2), posY - arrowSize);
+      return (path, TooltipMode.left);
+    } else if (posX + arrowSize > width && posY > arrowSize) {
+      path.moveTo(posX, posY);
+      path.lineTo(posX - arrowSize - (tagWidth / 2), posY - arrowSize);
+      path.lineTo(posX, posY - arrowSize);
+      return (path, TooltipMode.right);
+    } else if (posY < arrowSize) {
+      if (posX < arrowSize) {
+        path.moveTo(posX, posY + (tagHeight / 2));
+        path.lineTo(posX, posY);
+        path.lineTo(posX + arrowSize + (tagWidth / 2), posY + (tagHeight / 2));
+        return (path, TooltipMode.topLeft);
+      } else if (posX + arrowSize > width) {
+        path.moveTo(posX, posY + (tagHeight / 2));
+        path.lineTo(posX - arrowSize - (tagWidth / 2), posY + (tagHeight / 2));
+        path.lineTo(posX, posY);
+        return (path, TooltipMode.topRight);
+      } else {
+        path.moveTo(posX, posY);
+        path.lineTo(posX - arrowSize, posY + arrowSize);
+        path.lineTo(posX + arrowSize, posY + arrowSize);
+        return (path, TooltipMode.top);
+      }
+    } else {
+      path.moveTo(posX, posY);
+      path.lineTo(posX - arrowSize, posY - arrowSize);
+      path.lineTo(posX + arrowSize, posY - arrowSize);
+      return (path, TooltipMode.nomal);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

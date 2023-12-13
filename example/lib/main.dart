@@ -23,7 +23,7 @@ class _ExampleImageTagState extends State<ExampleImageTag> {
     });
   }
 
-  void _update(List<TagItem> items) {
+  void _update(List<TagItem> items, TagItem item) {
     setState(() {
       this.items = items;
     });
@@ -38,12 +38,14 @@ class _ExampleImageTagState extends State<ExampleImageTag> {
       body: Column(
         children: [
           ImageTag(
+            debug: true,
             tagItems: items,
             image: Image.network(
               "https://velog.velcdn.com/images/tygerhwang/post/11512c89-ada4-47d3-a71e-286a37932d16/image.avif",
             ),
-            onAdd: (TagItem item, _, __) => _add(item),
-            onUpdate: (List<TagItem> items, _, __, ___) => _update(items),
+            onAdd: _add,
+            onTagUpdate: _update,
+            onTagTap: (_) {},
           ),
         ],
       ),

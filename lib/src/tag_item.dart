@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:image_tag/image_tag.dart';
 
 class TagItem {
   final double x;
   final double y;
-  final Widget? child;
+  final TagContainer? child;
 
   const TagItem({
     required this.x,
@@ -14,7 +14,7 @@ class TagItem {
   TagItem copyWith({
     final double? x,
     final double? y,
-    final Widget? child,
+    final TagContainer? child,
   }) {
     return TagItem(
       x: x ?? this.x,
@@ -22,4 +22,7 @@ class TagItem {
       child: child ?? this.child,
     );
   }
+
+  @override
+  String toString() => "TagItem(x : $x, y : $y, child : $child)";
 }

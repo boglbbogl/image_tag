@@ -1,12 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_tag/image_tag.dart';
+import 'package:image_tag/src/tag_tooltip_options.dart';
+import 'package:image_tag/src/tag_tooltip_widget.dart';
 import 'package:image_tag/src/tooltip_mode.dart';
 
 class ImageTag extends StatefulWidget {
   final bool debug;
   final Image image;
   final List<TagItem> tagItems;
+  final TagTooltipOptions? options;
   final Function(TagItem)? onAdd;
   final Function(List<TagItem>, TagItem)? onTagUpdate;
   final Function(TagItem)? onTagTap;
@@ -20,6 +23,7 @@ class ImageTag extends StatefulWidget {
     this.debug = false,
     required this.image,
     required this.tagItems,
+    this.options,
     this.onAdd,
     this.onTagUpdate,
     this.onTagTap,
@@ -38,6 +42,7 @@ class _ImageTagState extends State<ImageTag> {
   final GlobalKey widgetKey = GlobalKey();
   late TagContainer tagWidget;
   late Size imageSize;
+  TagTooltipOptions? options;
   Size? widgetSize;
 
   ValueNotifier<List<TagItem>> tagItems = ValueNotifier([]);
@@ -47,18 +52,22 @@ class _ImageTagState extends State<ImageTag> {
   @override
   void initState() {
     super.initState();
-    _setTagWidget();
     _imageListener();
+    _setTagWidget();
     _setTagItem();
+    _setTooltipOptions();
   }
 
   @override
   void didUpdateWidget(covariant ImageTag oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _setTagWidget();
     _imageListener();
+    _setTagWidget();
+    _setTooltipOptions();
     _setTagItem();
   }
+
+  void _setTooltipOptions() => options = widget.options;
 
   void _setTagItem() => tagItems.value = widget.tagItems;
 
@@ -169,8 +178,8 @@ class _ImageTagState extends State<ImageTag> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: widgetSize != null ? widgetSize!.width : null,
-      height: widgetSize != null ? widgetSize!.height : null,
+      width: widgetSize?.width,
+      height: widgetSize?.height,
       child: ValueListenableBuilder<List<TagItem>>(
           valueListenable: tagItems,
           builder: (
@@ -186,8 +195,8 @@ class _ImageTagState extends State<ImageTag> {
                       ? (TapDownDetails details) => _onAdd(details)
                       : null,
                   child: SizedBox(
-                    width: widgetSize != null ? widgetSize!.width : null,
-                    height: widgetSize != null ? widgetSize!.height : null,
+                    width: widgetSize?.width,
+                    height: widgetSize?.height,
                     child: widget.image,
                   ),
                 ),
@@ -221,13 +230,20 @@ class _ImageTagState extends State<ImageTag> {
                           ))),
                 ],
                 if (widgetSize != null) ...[
-                  CustomPaint(
-                    painter: _TooltipPainter(
-                      widgetSize: widgetSize,
-                      item: selected,
-                      width: MediaQuery.of(context).size.width,
-                    ),
+                  TagTooltipWidget(
+                    selected: selected,
+                    options: options,
+                    size: widgetSize!,
                   ),
+                  // CustomPaint(
+                  //   child: Text("123213121"),
+                  //   foregroundPainter: _TooltipPainter(
+                  //     widgetSize: widgetSize,
+                  //     item: selected,
+                  //     width: MediaQuery.of(context).size.width,
+                  //     options: options,
+                  //   ),
+                  // ),
                 ],
               ],
             );
@@ -236,74 +252,96 @@ class _ImageTagState extends State<ImageTag> {
   }
 }
 
-class _TooltipPainter extends CustomPainter {
-  final double width;
-  final Size? widgetSize;
-  final TagItem? item;
+// class _TooltipPainter extends CustomPainter {
+//   final double width;
+//   final Size? widgetSize;
+//   final TagItem? item;
+//   final TagTooltipOptions? options;
 
-  const _TooltipPainter({
-    required this.widgetSize,
-    required this.item,
-    required this.width,
-  });
-  @override
-  void paint(Canvas canvas, _) {
-    if (item != null && widgetSize != null) {
-      Paint paint = Paint()..color = Colors.red;
+//   const _TooltipPainter({
+//     required this.widgetSize,
+//     required this.item,
+//     required this.width,
+//     required this.options,
+//   });
+//   @override
+//   void paint(Canvas canvas, _) {
+//     if (item != null && widgetSize != null) {
+//       TagTooltipOptions options = TagTooltipOptions(
+//         width: this.options?.width ?? widgetSize!.width * 0.3,
+//         height: this.options?.height ?? widgetSize!.width * 0.15,
+//         radius: this.options?.radius ?? 8,
+//       );
+//       Paint paint = Paint()..color = Colors.red;
 
-      int arrowSize = 15;
-      double posX = widgetSize!.width * item!.x;
-      double posY = widgetSize!.height * item!.y;
-      double tagWidth = item!.child!.getWidth(width);
-      double tagHeight = item!.child!.getHeight(width);
-      (Path, TooltipMode) settings =
-          _drawArrow(arrowSize, posX, posY, tagWidth, tagHeight);
-      canvas.drawPath(settings.$1, paint);
-      _drawBox(settings.$2);
-    }
-  }
+//       int arrowSize = 15;
 
-  _drawBox(TooltipMode mode) {}
+//       // RRect fullRect = RRect.fromRectAndRadius(
+//       //   Rect.fromCenter(center: Offset(posX, posY), width: 100, height: 30),
+//       //   Radius.circular(8),
+//       // );
+//       // (Path, TooltipMode) settings =
+//       //     _drawArrow(arrowSize, posX, posY, tagWidth, tagHeight);
+//       // canvas.drawPath(settings.$1, paint);
+//       // _drawBox();
+//       // canvas.drawRRect(_drawBox(options), paint);
+//     }
+//   }
 
-  (Path, TooltipMode) _drawArrow(int arrowSize, double posX, double posY,
-      double tagWidth, double tagHeight) {
-    Path path = Path();
+//   RRect _drawBox(TagTooltipOptions options) {
+//     double posX = widgetSize!.width * item!.x;
+//     double posY = widgetSize!.height * item!.y;
+//     double tagWidth = item!.child!.getWidth(width);
+//     double tagHeight = item!.child!.getHeight(width);
+//     // if (posX)
+//     return RRect.fromRectAndRadius(
+//       Rect.fromCenter(
+//           center: Offset(posX, posY),
+//           width: options.width!,
+//           height: options.height!),
+//       Radius.circular(options.radius!),
+//     );
+//   }
 
-    if (posX < arrowSize && posY > arrowSize) {
-      path.moveTo(posX, posY);
-      path.lineTo(posX, posY - arrowSize);
-      path.lineTo(posX + arrowSize + (tagWidth / 2), posY - arrowSize);
-      return (path, TooltipMode.left);
-    } else if (posX + arrowSize > width && posY > arrowSize) {
-      path.moveTo(posX, posY);
-      path.lineTo(posX - arrowSize - (tagWidth / 2), posY - arrowSize);
-      path.lineTo(posX, posY - arrowSize);
-      return (path, TooltipMode.right);
-    } else if (posY < arrowSize) {
-      if (posX < arrowSize) {
-        path.moveTo(posX, posY + (tagHeight / 2));
-        path.lineTo(posX, posY);
-        path.lineTo(posX + arrowSize + (tagWidth / 2), posY + (tagHeight / 2));
-        return (path, TooltipMode.topLeft);
-      } else if (posX + arrowSize > width) {
-        path.moveTo(posX, posY + (tagHeight / 2));
-        path.lineTo(posX - arrowSize - (tagWidth / 2), posY + (tagHeight / 2));
-        path.lineTo(posX, posY);
-        return (path, TooltipMode.topRight);
-      } else {
-        path.moveTo(posX, posY);
-        path.lineTo(posX - arrowSize, posY + arrowSize);
-        path.lineTo(posX + arrowSize, posY + arrowSize);
-        return (path, TooltipMode.top);
-      }
-    } else {
-      path.moveTo(posX, posY);
-      path.lineTo(posX - arrowSize, posY - arrowSize);
-      path.lineTo(posX + arrowSize, posY - arrowSize);
-      return (path, TooltipMode.nomal);
-    }
-  }
+//   (Path, TooltipMode) _drawArrow(int arrowSize, double posX, double posY,
+//       double tagWidth, double tagHeight) {
+//     Path path = Path();
 
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}
+//     if (posX < arrowSize && posY > arrowSize) {
+//       path.moveTo(posX, posY);
+//       path.lineTo(posX, posY - arrowSize);
+//       path.lineTo(posX + arrowSize + (tagWidth / 2), posY - arrowSize);
+//       return (path, TooltipMode.left);
+//     } else if (posX + arrowSize > width && posY > arrowSize) {
+//       path.moveTo(posX, posY);
+//       path.lineTo(posX - arrowSize - (tagWidth / 2), posY - arrowSize);
+//       path.lineTo(posX, posY - arrowSize);
+//       return (path, TooltipMode.right);
+//     } else if (posY < arrowSize) {
+//       if (posX < arrowSize) {
+//         path.moveTo(posX, posY + (tagHeight / 2));
+//         path.lineTo(posX, posY);
+//         path.lineTo(posX + arrowSize + (tagWidth / 2), posY + (tagHeight / 2));
+//         return (path, TooltipMode.topLeft);
+//       } else if (posX + arrowSize > width) {
+//         path.moveTo(posX, posY + (tagHeight / 2));
+//         path.lineTo(posX - arrowSize - (tagWidth / 2), posY + (tagHeight / 2));
+//         path.lineTo(posX, posY);
+//         return (path, TooltipMode.topRight);
+//       } else {
+//         path.moveTo(posX, posY);
+//         path.lineTo(posX - arrowSize, posY + arrowSize);
+//         path.lineTo(posX + arrowSize, posY + arrowSize);
+//         return (path, TooltipMode.top);
+//       }
+//     } else {
+//       path.moveTo(posX, posY);
+//       path.lineTo(posX - arrowSize, posY - arrowSize);
+//       path.lineTo(posX + arrowSize, posY - arrowSize);
+//       return (path, TooltipMode.nomal);
+//     }
+//   }
+
+//   @override
+//   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+// }

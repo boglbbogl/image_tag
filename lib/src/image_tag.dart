@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:image_tag/image_tag.dart';
 import 'package:image_tag/src/tag_tooltip_options.dart';
 import 'package:image_tag/src/tag_tooltip_widget.dart';
-import 'package:image_tag/src/tooltip_mode.dart';
 
 class ImageTag extends StatefulWidget {
   final bool debug;

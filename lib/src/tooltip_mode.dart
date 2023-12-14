@@ -1,10 +1,11 @@
 enum TooltipMode {
   top,
-  topLeft,
-  topRight,
   left,
+  leftTop,
+  leftBottom,
   right,
-  bottomLeft,
-  bottomRight,
+  rightTop,
+  rightBottom,
   nomal,
+  empty,
 }

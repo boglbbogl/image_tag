@@ -41,13 +41,14 @@ class _ExampleImageTagState extends State<ExampleImageTag> {
             debug: true,
             tagItems: items,
             image: Image.network(
-              "https://velog.velcdn.com/images/tygerhwang/post/11512c89-ada4-47d3-a71e-286a37932d16/image.avif",
+              "https://velog.velcdn.com/images/tygerhwang/post/ff4112ae-3b2e-4e88-82a3-1f37e026863a/image.png",
+              // "https://velog.velcdn.com/images/tygerhwang/post/11512c89-ada4-47d3-a71e-286a37932d16/image.avif",
             ),
             onAdd: _add,
             onTagUpdate: _update,
             onTagTap: (_) {},
             options: TagTooltipOptions(
-              arrowSize: 30,
+              color: Colors.white.withOpacity(0.8),
             ),
           ),
         ],

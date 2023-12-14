@@ -22,8 +22,10 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
   late TagTooltipOptions options;
   double? left;
   double? top;
+  double arrow = 7;
+  BorderRadius borderRadius = BorderRadius.circular(8);
+  double radius = 8;
 
-  BorderRadius radius = BorderRadius.circular(8);
   @override
   void initState() {
     super.initState();
@@ -38,37 +40,49 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
   }
 
   void _setOptions() {
-    (double, double) tooltipSize = _setOptionsWithSize();
     options = TagTooltipOptions(
-      width: tooltipSize.$1,
-      height: tooltipSize.$2,
+      width: widget.options?.width ?? widget.size.width * 0.3,
+      height: widget.options?.height ?? widget.size.width * 0.15,
       margin: widget.options?.margin ?? 4,
-      arrowSize: widget.options?.arrowSize != null
-          ? (widget.options!.arrowSize! > 10 ? 10 : widget.options!.arrowSize)
-          : 7,
-      radius: widget.options?.radius != null
-          ? (widget.options!.radius! > 10 ? 10 : widget.options!.radius)
-          : 8,
+      arrowSize: widget.options?.arrowSize ?? 7,
+      radius: widget.options?.radius ?? 8,
       color: widget.options?.color ?? Colors.white70,
     );
+    if (options.height! < options.width!) {
+      arrow = options.arrowSize! > options.height! / 8
+          ? options.height! / 8
+          : options.arrowSize!;
+      radius = options.radius! > options.height! / 4
+          ? options.height! / 4
+          : options.radius!;
+    } else {
+      arrow = options.arrowSize! > options.width! / 8
+          ? options.width! / 8
+          : options.arrowSize!;
+      radius = options.arrowSize! > options.width! / 4
+          ? options.width! / 4
+          : options.arrowSize!;
+    }
   }
-
-  (double, double) _setOptionsWithSize() => (
-        (widget.options?.width ?? widget.size.width * 0.2),
-        (widget.options?.height ?? widget.size.width * 0.01)
-      );
 
   void _setPosition() {
     if (widget.selected != null) {
-      final double space = options.margin! + options.arrowSize!;
-      final double posX = widget.size.width * widget.selected!.x;
-      final double posY = widget.size.height * widget.selected!.y;
       final double width = options.width!;
       final double height = options.height!;
+      final double posX = widget.size.width * widget.selected!.x;
+      final double posY = widget.size.height * widget.selected!.y;
       final double tagWidth =
           widget.selected!.child!.getWidth(MediaQuery.of(context).size.width);
       final double tagHeight =
           widget.selected!.child!.getHeight(MediaQuery.of(context).size.width);
+      double margin = options.margin!;
+      if (tagWidth < tagHeight) {
+        margin = margin > tagWidth / 2 ? tagWidth / 2 : margin;
+      } else {
+        margin = margin > tagHeight / 2 ? tagHeight / 2 : margin;
+      }
+      final double space = margin + arrow;
+
       if (posX < width / 2 &&
           posY > height / 2 &&
           posY + height / 2 < widget.size.height) {
@@ -129,19 +143,18 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
     double? topRight,
     double? bottomRight,
   }) {
-    final double option = options.radius!;
-    radius = BorderRadius.only(
+    borderRadius = BorderRadius.only(
       topLeft:
-          topLeft != null ? Radius.circular(topLeft) : Radius.circular(option),
+          topLeft != null ? Radius.circular(topLeft) : Radius.circular(radius),
       bottomLeft: bottomLeft != null
           ? Radius.circular(bottomLeft)
-          : Radius.circular(option),
+          : Radius.circular(radius),
       topRight: topRight != null
           ? Radius.circular(topRight)
-          : Radius.circular(option),
+          : Radius.circular(radius),
       bottomRight: bottomRight != null
           ? Radius.circular(bottomRight)
-          : Radius.circular(option),
+          : Radius.circular(radius),
     );
   }
 
@@ -167,7 +180,7 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
                 height: options.height!,
                 decoration: BoxDecoration(
                   color: options.color!,
-                  borderRadius: radius,
+                  borderRadius: borderRadius,
                 ),
                 child: options.child,
               ),
@@ -175,6 +188,7 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
                 painter: _ArrowPainter(
                   mode: mode,
                   options: options,
+                  arrow: arrow,
                 ),
               ),
             ],
@@ -188,14 +202,16 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
 class _ArrowPainter extends CustomPainter {
   final TooltipMode mode;
   final TagTooltipOptions options;
+  final double arrow;
 
   const _ArrowPainter({
     required this.mode,
     required this.options,
+    required this.arrow,
   });
   @override
   void paint(Canvas canvas, Size size) {
-    Paint paint = Paint()..color = Colors.white70;
+    Paint paint = Paint()..color = options.color ?? Colors.white70;
     Path? path = _drawArrow();
     if (path != null) {
       canvas.drawPath(path, paint);
@@ -204,7 +220,6 @@ class _ArrowPainter extends CustomPainter {
 
   Path? _drawArrow() {
     Path path = Path();
-    final double arrow = options.arrowSize!;
     final double width = options.width!;
     final double height = options.height!;
 

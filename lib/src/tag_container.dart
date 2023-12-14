@@ -46,6 +46,10 @@ class _TagContainerState extends State<TagContainer> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _updated();
+  }
+
+  void _updated() {
     if (widget.width != null && widget.height != null) {
       size = Size(widget.width!, widget.height!);
     } else if (widget.width != null && widget.height == null) {
@@ -56,6 +60,12 @@ class _TagContainerState extends State<TagContainer> {
       double width = MediaQuery.of(context).size.width * 0.085;
       size = Size(width, width);
     }
+  }
+
+  @override
+  void didUpdateWidget(covariant TagContainer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _updated();
   }
 
   @override

@@ -4,7 +4,8 @@ class TagTooltipOptions {
   final double? width;
   final double? height;
   final double? margin;
-  final BoxDecoration? decoration;
+  final double? radius;
+  final Color? color;
   final Widget? child;
   final double? arrowSize;
 
@@ -12,7 +13,8 @@ class TagTooltipOptions {
     this.width,
     this.height,
     this.margin,
-    this.decoration,
+    this.radius,
+    this.color,
     this.child,
     this.arrowSize,
   });

@@ -23,6 +23,8 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
   late TagTooltipOptions options;
   double? left;
   double? top;
+
+  BorderRadius radius = BorderRadius.circular(8);
   @override
   void initState() {
     super.initState();
@@ -37,15 +39,12 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
   }
 
   void _setOptions() => options = TagTooltipOptions(
-        width: widget.options?.width ?? widget.size.width * 0.3,
-        height: widget.options?.height ?? widget.size.width * 0.15,
+        width: widget.options?.width ?? widget.size.width * 0.2,
+        height: widget.options?.height ?? widget.size.width * 0.1,
         margin: widget.options?.margin ?? 4,
         arrowSize: widget.options?.arrowSize ?? 10,
-        decoration: widget.options?.decoration ??
-            BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: Colors.red,
-            ),
+        radius: widget.options?.radius ?? 8,
+        color: widget.options?.color ?? Colors.amber,
       );
 
   void _setPosition() {
@@ -62,54 +61,77 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
       if (posX < width / 2 &&
           posY > height / 2 &&
           posY + height / 2 < widget.size.height) {
-        // left
         left = posX + tagWidth / 2 + space;
         top = posY - (tagHeight / 2) - (height / 4);
         mode = TooltipMode.left;
+        _borderRadius();
       } else if (posX < width / 2 && posY < height / 2) {
-        // leftTop,
         left = posX + tagWidth / 2 + space;
         top = posY - (tagHeight / 2) + (height / 4);
-        // }
         mode = TooltipMode.leftTop;
+        _borderRadius(topLeft: 0);
       } else if (posX < width / 2 && posY + height / 2 > widget.size.height) {
-        // leftBottom
         left = posX + tagWidth / 2 + space;
         top = posY - height;
         mode = TooltipMode.leftBottom;
+        _borderRadius(bottomLeft: 0);
       } else if (posX + width / 2 > widget.size.width &&
           posY > height / 2 &&
           posY + height / 2 < widget.size.height) {
-        // right
         left = posX - width - tagWidth / 2 - space;
         top = posY - (tagHeight / 2) - (height / 4);
         mode = TooltipMode.right;
+        _borderRadius();
       } else if (posX + width / 2 > widget.size.width && posY < height / 2) {
-        // rightTop
         left = posX - width - tagWidth / 2 - space;
         top = posY - (tagHeight / 2) + (height / 4);
         mode = TooltipMode.rightTop;
+        _borderRadius(topRight: 0);
       } else if (posX + width / 2 > widget.size.width &&
           posY + height / 2 > widget.size.height) {
-        // rightBottom
         left = posX - width - tagWidth / 2 - space;
         top = posY - height;
         mode = TooltipMode.rightBottom;
+        _borderRadius(bottomRight: 0);
       } else if (posY < height + space + tagHeight / 2) {
-        // top
         left = posX - width / 2;
         top = posY + (tagHeight / 2) + space;
         mode = TooltipMode.top;
+        _borderRadius();
       } else {
         left = posX - width / 2;
         top = posY - (tagHeight / 2) - height - space;
         mode = TooltipMode.nomal;
+        _borderRadius();
       }
     } else {
       left = null;
       top = null;
       mode = TooltipMode.empty;
+      _borderRadius();
     }
+  }
+
+  void _borderRadius({
+    double? topLeft,
+    double? bottomLeft,
+    double? topRight,
+    double? bottomRight,
+  }) {
+    final double option = options.radius!;
+    radius = BorderRadius.only(
+      topLeft:
+          topLeft != null ? Radius.circular(topLeft) : Radius.circular(option),
+      bottomLeft: bottomLeft != null
+          ? Radius.circular(bottomLeft)
+          : Radius.circular(option),
+      topRight: topRight != null
+          ? Radius.circular(topRight)
+          : Radius.circular(option),
+      bottomRight: bottomRight != null
+          ? Radius.circular(bottomRight)
+          : Radius.circular(option),
+    );
   }
 
   @override
@@ -132,7 +154,10 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
               Container(
                 width: options.width!,
                 height: options.height!,
-                decoration: options.decoration,
+                decoration: BoxDecoration(
+                  color: options.color!,
+                  borderRadius: radius,
+                ),
                 child: options.child,
               ),
               CustomPaint(
@@ -159,7 +184,7 @@ class _ArrowPainter extends CustomPainter {
   });
   @override
   void paint(Canvas canvas, Size size) {
-    Paint paint = Paint()..color = Colors.yellow;
+    Paint paint = Paint()..color = Colors.red;
     Path? path = _drawArrow();
     if (path != null) {
       canvas.drawPath(path, paint);
@@ -178,15 +203,33 @@ class _ArrowPainter extends CustomPainter {
         ..lineTo(0, height / 2 + arrow)
         ..lineTo(-arrow, height / 2),
       TooltipMode.leftTop => path
-        ..moveTo(width, 0)
+        ..moveTo(0, 0)
         ..lineTo(-arrow, 0)
         ..lineTo(0, arrow),
-      TooltipMode.leftBottom => null,
-      TooltipMode.right => null,
-      TooltipMode.rightTop => null,
-      TooltipMode.rightBottom => null,
-      TooltipMode.top => null,
-      TooltipMode.nomal => null,
+      TooltipMode.leftBottom => path
+        ..moveTo(0, height)
+        ..lineTo(-arrow, height)
+        ..lineTo(0, height - arrow),
+      TooltipMode.right => path
+        ..moveTo(width, height / 2 - arrow)
+        ..lineTo(width, height / 2 + arrow)
+        ..lineTo(width + arrow, height / 2),
+      TooltipMode.rightTop => path
+        ..moveTo(width, 0)
+        ..lineTo(width + arrow, 0)
+        ..lineTo(width, arrow),
+      TooltipMode.rightBottom => path
+        ..moveTo(width, height)
+        ..lineTo(width + arrow, height)
+        ..lineTo(width, height - arrow),
+      TooltipMode.top => path
+        ..moveTo(width / 2 - arrow, 0)
+        ..lineTo(width / 2 + arrow, 0)
+        ..lineTo(width / 2, -arrow),
+      TooltipMode.nomal => path
+        ..moveTo(width / 2 - arrow, height)
+        ..lineTo(width / 2 + arrow, height)
+        ..lineTo(width / 2, height + arrow),
       TooltipMode.empty => null,
     };
   }

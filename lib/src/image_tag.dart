@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_tag/image_tag.dart';
-import 'package:image_tag/src/tag_tooltip_options.dart';
 import 'package:image_tag/src/tag_tooltip_widget.dart';
 
 class ImageTag extends StatefulWidget {

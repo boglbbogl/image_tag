@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:image_tag/image_tag.dart';
-import 'package:image_tag/src/tag_tooltip_options.dart';
 import 'package:image_tag/src/tooltip_mode.dart';
 
 class TagTooltipWidget extends StatefulWidget {
@@ -38,13 +37,25 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
     _setPosition();
   }
 
-  void _setOptions() => options = TagTooltipOptions(
-        width: widget.options?.width ?? widget.size.width * 0.2,
-        height: widget.options?.height ?? widget.size.width * 0.1,
-        margin: widget.options?.margin ?? 4,
-        arrowSize: widget.options?.arrowSize ?? 10,
-        radius: widget.options?.radius ?? 8,
-        color: widget.options?.color ?? Colors.amber,
+  void _setOptions() {
+    (double, double) tooltipSize = _setOptionsWithSize();
+    options = TagTooltipOptions(
+      width: tooltipSize.$1,
+      height: tooltipSize.$2,
+      margin: widget.options?.margin ?? 4,
+      arrowSize: widget.options?.arrowSize != null
+          ? (widget.options!.arrowSize! > 10 ? 10 : widget.options!.arrowSize)
+          : 7,
+      radius: widget.options?.radius != null
+          ? (widget.options!.radius! > 10 ? 10 : widget.options!.radius)
+          : 8,
+      color: widget.options?.color ?? Colors.white70,
+    );
+  }
+
+  (double, double) _setOptionsWithSize() => (
+        (widget.options?.width ?? widget.size.width * 0.2),
+        (widget.options?.height ?? widget.size.width * 0.01)
       );
 
   void _setPosition() {
@@ -62,7 +73,7 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
           posY > height / 2 &&
           posY + height / 2 < widget.size.height) {
         left = posX + tagWidth / 2 + space;
-        top = posY - (tagHeight / 2) - (height / 4);
+        top = posY - height / 2;
         mode = TooltipMode.left;
         _borderRadius();
       } else if (posX < width / 2 && posY < height / 2) {
@@ -79,7 +90,7 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
           posY > height / 2 &&
           posY + height / 2 < widget.size.height) {
         left = posX - width - tagWidth / 2 - space;
-        top = posY - (tagHeight / 2) - (height / 4);
+        top = posY - (height / 2);
         mode = TooltipMode.right;
         _borderRadius();
       } else if (posX + width / 2 > widget.size.width && posY < height / 2) {
@@ -184,7 +195,7 @@ class _ArrowPainter extends CustomPainter {
   });
   @override
   void paint(Canvas canvas, Size size) {
-    Paint paint = Paint()..color = Colors.red;
+    Paint paint = Paint()..color = Colors.white70;
     Path? path = _drawArrow();
     if (path != null) {
       canvas.drawPath(path, paint);

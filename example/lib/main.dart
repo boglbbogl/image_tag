@@ -46,6 +46,9 @@ class _ExampleImageTagState extends State<ExampleImageTag> {
             onAdd: _add,
             onTagUpdate: _update,
             onTagTap: (_) {},
+            options: TagTooltipOptions(
+              arrowSize: 30,
+            ),
           ),
         ],
       ),

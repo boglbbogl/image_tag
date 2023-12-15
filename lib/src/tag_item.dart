@@ -24,5 +24,17 @@ class TagItem {
   }
 
   @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TagItem &&
+          runtimeType == other.runtimeType &&
+          x == other.x &&
+          y == other.y &&
+          child == other.child;
+
+  @override
   String toString() => "TagItem(x : $x, y : $y, child : $child)";
+
+  @override
+  int get hashCode => x.hashCode ^ y.hashCode ^ child.hashCode;
 }

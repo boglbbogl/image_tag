@@ -10,6 +10,7 @@ class TagTooltipOptions {
   final Widget? child;
   final double? arrowSize;
   final int duration;
+  final AnimatedSwitcherTransitionBuilder? transitionBuilder;
 
   const TagTooltipOptions({
     this.tooltip = true,
@@ -20,6 +21,7 @@ class TagTooltipOptions {
     this.color,
     this.child,
     this.arrowSize,
-    this.duration = 200,
+    this.duration = 150,
+    this.transitionBuilder,
   });
 }

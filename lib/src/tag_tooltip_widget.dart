@@ -6,6 +6,7 @@ class TagTooltipWidget extends StatefulWidget {
   final TagItem? selected;
   final TagTooltipOptions? options;
   final Size size;
+
   const TagTooltipWidget({
     super.key,
     required this.selected,
@@ -27,8 +28,6 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
   BorderRadius borderRadius = BorderRadius.circular(8);
   double radius = 8;
 
-  bool isDuration = false;
-
   @override
   void initState() {
     super.initState();
@@ -40,18 +39,13 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
   void didUpdateWidget(covariant TagTooltipWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     _setOptions();
-    _setItem();
     _setPosition();
-  }
-
-  void _durationState() {
-    isDuration = true;
-    Future.delayed(
-        Duration(milliseconds: options.duration), () => isDuration = false);
+    if (oldWidget.selected != widget.selected) {
+      _setItem();
+    }
   }
 
   void _setItem() {
-    _durationState();
     if (widget.selected == null && selected.value == null) {
       selected.value = widget.selected;
     } else if (widget.selected == null && selected.value != null) {
@@ -75,6 +69,8 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
       radius: widget.options?.radius ?? 8,
       color: widget.options?.color ?? Colors.white70,
       duration: widget.options!.duration,
+      transitionBuilder: widget.options!.transitionBuilder,
+      child: widget.options!.child,
     );
     if (options.height! < options.width!) {
       arrow = options.arrowSize! > options.height! / 8
@@ -210,10 +206,11 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
                 child: AnimatedSwitcher(
                   duration: Duration(milliseconds: options.duration),
                   reverseDuration: Duration.zero,
-                  transitionBuilder: (child, animation) => ScaleTransition(
-                    scale: animation,
-                    child: child,
-                  ),
+                  transitionBuilder: options.transitionBuilder ??
+                      ((child, animation) => ScaleTransition(
+                            scale: animation,
+                            child: child,
+                          )),
                   child: item == null
                       ? Container(color: Colors.transparent)
                       : Stack(

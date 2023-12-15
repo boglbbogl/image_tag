@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_tag/image_tag.dart';
 import 'package:image_tag/src/tag_tooltip_widget.dart';
+import 'dart:developer' as developer;
 
 class ImageTag extends StatefulWidget {
   final bool debug;
@@ -50,6 +51,9 @@ class _ImageTagState extends State<ImageTag> {
   ValueNotifier<List<TagItem>> tagItems = ValueNotifier([]);
 
   ValueNotifier<TagItem?> selected = ValueNotifier(null);
+  int? previousSelectNo;
+
+  TapDownDetails? tapDownDetails;
 
   @override
   void initState() {
@@ -113,15 +117,17 @@ class _ImageTagState extends State<ImageTag> {
     }
   }
 
-  void _onTap(TapDownDetails details) {
-    if (widgetSize != null) {
-      TagItem item = _addTag(details.localPosition);
+  void _onTapDown(TapDownDetails details) => tapDownDetails = details;
+
+  void _onTap() {
+    if (widgetSize != null && tapDownDetails != null) {
+      TagItem item = _addTag(tapDownDetails!.localPosition);
       if (widget.onTap != null) {
         widget.onTap!(item);
         _log("[onTap] $item");
       }
       if (widget.customTap != null) {
-        widget.customTap!(item.x, item.y, details.localPosition);
+        widget.customTap!(item.x, item.y, tapDownDetails!.localPosition);
         _log("[onTap] x : ${item.x}, y : ${item.y}");
       }
       selected.value = null;
@@ -160,7 +166,6 @@ class _ImageTagState extends State<ImageTag> {
 
   void _onTagUpdate(DragUpdateDetails details, int index) {
     if (widgetSize != null) {
-      selected.value = null;
       List<TagItem> items = tagItems.value;
       TagItem item = items[index];
       final double dx = (item.x * widgetSize!.width) + (details.delta.dx * 1.5);
@@ -181,6 +186,9 @@ class _ImageTagState extends State<ImageTag> {
       items = List.from(items)
         ..removeAt(index)
         ..insert(index, item);
+
+      selected.value = null;
+
       if (widget.onTagUpdate != null) {
         widget.onTagUpdate!(items, item);
         _log(
@@ -193,8 +201,30 @@ class _ImageTagState extends State<ImageTag> {
     }
   }
 
+  void _onTagUpdateStart(int index) {
+    if (selected.value != null) {
+      previousSelectNo = index;
+    } else {
+      previousSelectNo = null;
+    }
+  }
+
+  void _onTagUpdateEnd(
+    DragEndDetails details,
+  ) {
+    if (previousSelectNo != null) {
+      selected.value = tagItems.value[previousSelectNo!];
+    }
+    previousSelectNo = null;
+  }
+
   void _log(String log) {
-    if (kDebugMode) if (widget.debug) print(log);
+    if (kDebugMode) {
+      if (widget.debug) {
+        developer.log('\x1B[36m $log \x1B[0m');
+      }
+    }
+    ;
   }
 
   @override
@@ -213,7 +243,8 @@ class _ImageTagState extends State<ImageTag> {
               children: [
                 GestureDetector(
                   key: widgetKey,
-                  onTapDown: _onTap,
+                  onTap: _onTap,
+                  onTapDown: _onTapDown,
                   onLongPressStart: _onLongTap,
                   child: SizedBox(
                     width: widgetSize?.width,
@@ -242,6 +273,8 @@ class _ImageTagState extends State<ImageTag> {
                             onTap: () => _onTagTap(index),
                             onPanUpdate: (DragUpdateDetails details) =>
                                 _onTagUpdate(details, index),
+                            onPanEnd: _onTagUpdateEnd,
+                            onPanStart: (_) => _onTagUpdateStart(index),
                             child: items[index].child ?? tagWidget,
                           ))),
                 ],

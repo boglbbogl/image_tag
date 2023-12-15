@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class TagTooltipOptions {
+  final bool tooltip;
   final double? width;
   final double? height;
   final double? margin;
@@ -10,6 +11,7 @@ class TagTooltipOptions {
   final double? arrowSize;
 
   const TagTooltipOptions({
+    this.tooltip = true,
     this.width,
     this.height,
     this.margin,
@@ -18,11 +20,4 @@ class TagTooltipOptions {
     this.child,
     this.arrowSize,
   });
-}
-
-enum TooltipType {
-  top,
-  left,
-  right,
-  bottom;
 }

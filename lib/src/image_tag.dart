@@ -8,11 +8,13 @@ class ImageTag extends StatefulWidget {
   final Image image;
   final List<TagItem> tagItems;
   final TagTooltipOptions? options;
-  final Function(TagItem)? onAdd;
+  final Function(TagItem)? onTap;
+  final Function(TagItem)? onLongTap;
   final Function(List<TagItem>, TagItem)? onTagUpdate;
   final Function(TagItem)? onTagTap;
   final Function(TagItem)? onTagLongTap;
-  final Function(double, double)? customAdd;
+  final Function(double, double, Offset)? customTap;
+  final Function(double, double, Offset)? customLongTap;
   final Function(double, double, int)? customTagUpdate;
   final Function(double, double, int)? customTagTap;
   final Function(double, double, int)? customTagLongTap;
@@ -22,11 +24,13 @@ class ImageTag extends StatefulWidget {
     required this.image,
     required this.tagItems,
     this.options,
-    this.onAdd,
+    this.onTap,
+    this.onLongTap,
     this.onTagUpdate,
     this.onTagTap,
     this.onTagLongTap,
-    this.customAdd,
+    this.customTap,
+    this.customLongTap,
     this.customTagUpdate,
     this.customTagTap,
     this.customTagLongTap,
@@ -45,7 +49,7 @@ class _ImageTagState extends State<ImageTag> {
 
   ValueNotifier<List<TagItem>> tagItems = ValueNotifier([]);
 
-  TagItem? selected;
+  ValueNotifier<TagItem?> selected = ValueNotifier(null);
 
   @override
   void initState() {
@@ -89,25 +93,43 @@ class _ImageTagState extends State<ImageTag> {
     });
   }
 
-  void _onAdd(TapDownDetails details) {
+  TagItem _addTag(Offset offset) {
+    double x = offset.dx / widgetSize!.width;
+    double y = offset.dy / widgetSize!.height;
+    return TagItem(x: x, y: y, child: tagWidget);
+  }
+
+  void _onLongTap(LongPressStartDetails details) {
     if (widgetSize != null) {
-      double x = details.localPosition.dx / widgetSize!.width;
-      double y = details.localPosition.dy / widgetSize!.height;
-      final TagItem item = TagItem(x: x, y: y, child: tagWidget);
-      if (widget.onAdd != null) {
-        widget.onAdd!(item);
-        _log("[onAdd] $item");
+      TagItem item = _addTag(details.localPosition);
+      if (widget.onLongTap != null) {
+        widget.onLongTap!(item);
+        _log("[onLongTap] $item");
       }
-      if (widget.customAdd != null) {
-        widget.customAdd!(x, y);
-        _log("[onAdd] x : $x, y : $y");
+      if (widget.customLongTap != null) {
+        widget.customLongTap!(item.x, item.y, details.localPosition);
+        _log("[onLongTap] x : ${item.x}, y : ${item.y}");
       }
+    }
+  }
+
+  void _onTap(TapDownDetails details) {
+    if (widgetSize != null) {
+      TagItem item = _addTag(details.localPosition);
+      if (widget.onTap != null) {
+        widget.onTap!(item);
+        _log("[onTap] $item");
+      }
+      if (widget.customTap != null) {
+        widget.customTap!(item.x, item.y, details.localPosition);
+        _log("[onTap] x : ${item.x}, y : ${item.y}");
+      }
+      selected.value = null;
     }
   }
 
   void _onTagTap(int index) {
     TagItem item = tagItems.value[index];
-
     if (widget.onTagTap != null) {
       widget.onTagTap!(item);
       _log("[onTagTap] $item");
@@ -116,9 +138,9 @@ class _ImageTagState extends State<ImageTag> {
       widget.customTagTap!(item.x, item.y, index);
       _log("[onTagTap] x : ${item.x}, y : ${item.y}, index : $index");
     }
-    setState(() {
-      selected = item.copyWith(child: item.child ?? tagWidget);
-    });
+    if (!(widget.onTagLongTap != null || widget.customTagLongTap != null)) {
+      selected.value = item.copyWith(child: item.child ?? tagWidget);
+    }
   }
 
   void _onTagLongTap(int index) {
@@ -131,20 +153,26 @@ class _ImageTagState extends State<ImageTag> {
       widget.customTagLongTap!(item.x, item.y, index);
       _log("[onTagLongTap] x : ${item.x}, y : ${item.y}, index : $index");
     }
+    if (widget.onTagLongTap != null || widget.customTagLongTap != null) {
+      selected.value = item.copyWith(child: item.child ?? tagWidget);
+    }
   }
 
   void _onTagUpdate(DragUpdateDetails details, int index) {
     if (widgetSize != null) {
+      selected.value = null;
       List<TagItem> items = tagItems.value;
       TagItem item = items[index];
-      double dx = (item.x * widgetSize!.width) + details.delta.dx;
-      double dy = (item.y * widgetSize!.height) + details.delta.dy;
-      double x = switch (dx / widgetSize!.width) {
+      final double dx = (item.x * widgetSize!.width) + (details.delta.dx * 1.5);
+      final double dy =
+          (item.y * widgetSize!.height) + (details.delta.dy * 1.5);
+
+      final double x = switch (dx / widgetSize!.width) {
         < 0 => 0,
         > 1 => 1,
         _ => dx / widgetSize!.width,
       };
-      double y = switch (dy / widgetSize!.height) {
+      final double y = switch (dy / widgetSize!.height) {
         < 0 => 0,
         > 1 => 1,
         _ => dy / widgetSize!.height,
@@ -166,11 +194,7 @@ class _ImageTagState extends State<ImageTag> {
   }
 
   void _log(String log) {
-    if (kDebugMode) {
-      if (widget.debug) {
-        print(log);
-      }
-    }
+    if (kDebugMode) if (widget.debug) print(log);
   }
 
   @override
@@ -189,9 +213,8 @@ class _ImageTagState extends State<ImageTag> {
               children: [
                 GestureDetector(
                   key: widgetKey,
-                  onTapDown: widget.onAdd != null || widget.customAdd != null
-                      ? (TapDownDetails details) => _onAdd(details)
-                      : null,
+                  onTapDown: _onTap,
+                  onLongPressStart: _onLongTap,
                   child: SizedBox(
                     width: widgetSize?.width,
                     height: widgetSize?.height,
@@ -203,36 +226,39 @@ class _ImageTagState extends State<ImageTag> {
                       items.length,
                       (index) => Positioned(
                           left: (widgetSize!.width * items[index].x) -
-                              ((items[index].child ?? tagWidget).getWidth(
-                                      MediaQuery.of(context).size.width) /
+                              ((items[index].child ?? tagWidget)
+                                      .getSize(
+                                          MediaQuery.of(context).size.width)
+                                      .$1 /
                                   2),
                           top: (widgetSize!.height * items[index].y) -
-                              ((items[index].child ?? tagWidget).getHeight(
-                                      MediaQuery.of(context).size.width) /
+                              ((items[index].child ?? tagWidget)
+                                      .getSize(
+                                          MediaQuery.of(context).size.width)
+                                      .$2 /
                                   2),
                           child: GestureDetector(
-                            onLongPress: widget.onTagLongTap != null ||
-                                    widget.customTagLongTap != null
-                                ? () => _onTagLongTap(index)
-                                : null,
-                            onTap: widget.onTagTap != null ||
-                                    widget.customTagTap != null
-                                ? () => _onTagTap(index)
-                                : null,
-                            onPanUpdate: widget.onTagUpdate != null ||
-                                    widget.customTagUpdate != null
-                                ? (DragUpdateDetails details) =>
-                                    _onTagUpdate(details, index)
-                                : null,
+                            onLongPress: () => _onTagLongTap(index),
+                            onTap: () => _onTagTap(index),
+                            onPanUpdate: (DragUpdateDetails details) =>
+                                _onTagUpdate(details, index),
                             child: items[index].child ?? tagWidget,
                           ))),
                 ],
                 if (widgetSize != null) ...[
-                  TagTooltipWidget(
-                    selected: selected,
-                    options: options,
-                    size: widgetSize!,
-                  ),
+                  ValueListenableBuilder<TagItem?>(
+                      valueListenable: selected,
+                      builder: (
+                        BuildContext context,
+                        TagItem? tag,
+                        Widget? child,
+                      ) {
+                        return TagTooltipWidget(
+                          selected: tag,
+                          options: options,
+                          size: widgetSize!,
+                        );
+                      }),
                 ],
               ],
             );

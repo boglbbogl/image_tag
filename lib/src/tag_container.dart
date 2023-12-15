@@ -14,23 +14,15 @@ class TagContainer extends StatefulWidget {
   @override
   State<TagContainer> createState() => _TagContainerState();
 
-  double getWidth(double width) {
-    if (this.width != null) {
-      return this.width!;
+  (double, double) getSize(double width) {
+    if (this.width != null && height != null) {
+      return (this.width!, height!);
+    } else if (this.width != null && height == null) {
+      return (this.width!, this.width!);
     } else if (this.width == null && height != null) {
-      return height!;
+      return (height!, height!);
     } else {
-      return width * 0.085;
-    }
-  }
-
-  double getHeight(double width) {
-    if (height != null) {
-      return height!;
-    } else if (height == null && this.width != null) {
-      return this.width!;
-    } else {
-      return width * 0.085;
+      return (width * 0.085, width * 0.085);
     }
   }
 }

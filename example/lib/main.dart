@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_tag/image_tag.dart';
 
 void main() {
@@ -18,6 +19,7 @@ class _ExampleImageTagState extends State<ExampleImageTag> {
   List<TagItem> items = [];
 
   void _add(TagItem item) {
+    HapticFeedback.mediumImpact();
     setState(() {
       items = List.from(items)..add(item);
     });
@@ -44,9 +46,12 @@ class _ExampleImageTagState extends State<ExampleImageTag> {
               "https://velog.velcdn.com/images/tygerhwang/post/ff4112ae-3b2e-4e88-82a3-1f37e026863a/image.png",
               // "https://velog.velcdn.com/images/tygerhwang/post/11512c89-ada4-47d3-a71e-286a37932d16/image.avif",
             ),
-            onAdd: _add,
+            // onTagLongTap: _add,
+            // onTap: _add,
+            onLongTap: _add,
             onTagUpdate: _update,
-            onTagTap: (_) {},
+            // onTagLongTap: (_) {},
+            // onTagTap: (_) {},
             options: TagTooltipOptions(
               color: Colors.white.withOpacity(0.8),
             ),

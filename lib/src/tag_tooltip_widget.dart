@@ -20,11 +20,14 @@ class TagTooltipWidget extends StatefulWidget {
 class _TagTooltipWidgetState extends State<TagTooltipWidget> {
   TooltipMode mode = TooltipMode.empty;
   late TagTooltipOptions options;
+
   double? left;
   double? top;
   double arrow = 7;
   BorderRadius borderRadius = BorderRadius.circular(8);
   double radius = 8;
+
+  ValueNotifier<List<TagItem>> items = ValueNotifier([]);
 
   @override
   void initState() {
@@ -71,67 +74,67 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
       final double height = options.height!;
       final double posX = widget.size.width * widget.selected!.x;
       final double posY = widget.size.height * widget.selected!.y;
-      final double tagWidth =
-          widget.selected!.child!.getWidth(MediaQuery.of(context).size.width);
-      final double tagHeight =
-          widget.selected!.child!.getHeight(MediaQuery.of(context).size.width);
+      final (double, double) tagSize =
+          widget.selected!.child!.getSize(MediaQuery.of(context).size.width);
       double margin = options.margin!;
-      if (tagWidth < tagHeight) {
-        margin = margin > tagWidth / 2 ? tagWidth / 2 : margin;
+
+      if (tagSize.$1 < tagSize.$2) {
+        margin = margin > tagSize.$1 / 2 ? tagSize.$1 / 2 : margin;
       } else {
-        margin = margin > tagHeight / 2 ? tagHeight / 2 : margin;
+        margin = margin > tagSize.$2 / 2 ? tagSize.$2 / 2 : margin;
       }
+
       final double space = margin + arrow;
 
       if (posX < width / 2 &&
           posY > height / 2 &&
           posY + height / 2 < widget.size.height) {
-        left = posX + tagWidth / 2 + space;
+        left = posX + tagSize.$1 / 2 + space;
         top = posY - height / 2;
         mode = TooltipMode.left;
         _borderRadius();
       } else if (posX < width / 2 && posY < height / 2) {
-        left = posX + tagWidth / 2 + space;
-        top = posY - (tagHeight / 2) + (height / 4);
+        left = posX + tagSize.$1 / 2 + space;
+        top = posY - (tagSize.$2 / 2) + (height / 4);
         mode = TooltipMode.leftTop;
         _borderRadius(topLeft: 0);
       } else if (posX < width / 2 && posY + height / 2 > widget.size.height) {
-        left = posX + tagWidth / 2 + space;
+        left = posX + tagSize.$1 / 2 + space;
         top = posY - height;
         mode = TooltipMode.leftBottom;
         _borderRadius(bottomLeft: 0);
       } else if (posX + width / 2 > widget.size.width &&
           posY > height / 2 &&
           posY + height / 2 < widget.size.height) {
-        left = posX - width - tagWidth / 2 - space;
+        left = posX - width - tagSize.$1 / 2 - space;
         top = posY - (height / 2);
         mode = TooltipMode.right;
         _borderRadius();
       } else if (posX + width / 2 > widget.size.width && posY < height / 2) {
-        left = posX - width - tagWidth / 2 - space;
-        top = posY - (tagHeight / 2) + (height / 4);
+        left = posX - width - tagSize.$1 / 2 - space;
+        top = posY - (tagSize.$2 / 2) + (height / 4);
         mode = TooltipMode.rightTop;
         _borderRadius(topRight: 0);
       } else if (posX + width / 2 > widget.size.width &&
           posY + height / 2 > widget.size.height) {
-        left = posX - width - tagWidth / 2 - space;
+        left = posX - width - tagSize.$1 / 2 - space;
         top = posY - height;
         mode = TooltipMode.rightBottom;
         _borderRadius(bottomRight: 0);
-      } else if (posY < height + space + tagHeight / 2) {
+      } else if (posY < height + space + tagSize.$2 / 2) {
         left = posX - width / 2;
-        top = posY + (tagHeight / 2) + space;
+        top = posY + (tagSize.$2 / 2) + space;
         mode = TooltipMode.top;
         _borderRadius();
       } else {
         left = posX - width / 2;
-        top = posY - (tagHeight / 2) - height - space;
+        top = posY - (tagSize.$2 / 2) - height - space;
         mode = TooltipMode.nomal;
         _borderRadius();
       }
     } else {
-      left = null;
-      top = null;
+      left = left;
+      top = top;
       mode = TooltipMode.empty;
       _borderRadius();
     }
@@ -160,10 +163,9 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.selected == null || left == null || top == null) {
-      return Container();
-    } else {
-      return Positioned(
+    return Visibility(
+      visible: widget.options!.tooltip,
+      child: Positioned(
         left: left,
         top: top,
         child: ConstrainedBox(
@@ -173,29 +175,39 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
             minHeight: 0,
             minWidth: 0,
           ),
-          child: Stack(
-            children: [
-              Container(
-                width: options.width!,
-                height: options.height!,
-                decoration: BoxDecoration(
-                  color: options.color!,
-                  borderRadius: borderRadius,
-                ),
-                child: options.child,
-              ),
-              CustomPaint(
-                painter: _ArrowPainter(
-                  mode: mode,
-                  options: options,
-                  arrow: arrow,
-                ),
-              ),
-            ],
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            reverseDuration: const Duration(milliseconds: 100),
+            transitionBuilder: (child, animation) => ScaleTransition(
+              scale: animation,
+              child: child,
+            ),
+            child: widget.selected == null
+                ? Container(color: Colors.transparent)
+                : Stack(
+                    children: [
+                      Container(
+                        width: options.width!,
+                        height: options.height!,
+                        decoration: BoxDecoration(
+                          color: options.color!,
+                          borderRadius: borderRadius,
+                        ),
+                        child: options.child,
+                      ),
+                      CustomPaint(
+                        painter: _ArrowPainter(
+                          mode: mode,
+                          options: options,
+                          arrow: arrow,
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ),
-      );
-    }
+      ),
+    );
   }
 }
 

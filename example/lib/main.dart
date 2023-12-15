@@ -54,6 +54,7 @@ class _ExampleImageTagState extends State<ExampleImageTag> {
             // onTagTap: (_) {},
             options: TagTooltipOptions(
               color: Colors.white.withOpacity(0.8),
+              duration: 3000,
             ),
           ),
         ],

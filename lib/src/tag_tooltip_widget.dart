@@ -19,27 +19,51 @@ class TagTooltipWidget extends StatefulWidget {
 
 class _TagTooltipWidgetState extends State<TagTooltipWidget> {
   TooltipMode mode = TooltipMode.empty;
+  ValueNotifier<TagItem?> selected = ValueNotifier(null);
   late TagTooltipOptions options;
-
   double? left;
   double? top;
   double arrow = 7;
   BorderRadius borderRadius = BorderRadius.circular(8);
   double radius = 8;
 
-  ValueNotifier<List<TagItem>> items = ValueNotifier([]);
+  bool isDuration = false;
 
   @override
   void initState() {
     super.initState();
     _setOptions();
+    _setItem();
   }
 
   @override
   void didUpdateWidget(covariant TagTooltipWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     _setOptions();
+    _setItem();
     _setPosition();
+  }
+
+  void _durationState() {
+    isDuration = true;
+    Future.delayed(
+        Duration(milliseconds: options.duration), () => isDuration = false);
+  }
+
+  void _setItem() {
+    _durationState();
+    if (widget.selected == null && selected.value == null) {
+      selected.value = widget.selected;
+    } else if (widget.selected == null && selected.value != null) {
+      selected.value = widget.selected;
+    } else if (widget.selected != null && selected.value != null) {
+      selected.value = null;
+      Future.delayed(const Duration(milliseconds: 0), () {
+        selected.value = widget.selected;
+      });
+    } else {
+      selected.value = widget.selected;
+    }
   }
 
   void _setOptions() {
@@ -50,6 +74,7 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
       arrowSize: widget.options?.arrowSize ?? 7,
       radius: widget.options?.radius ?? 8,
       color: widget.options?.color ?? Colors.white70,
+      duration: widget.options!.duration,
     );
     if (options.height! < options.width!) {
       arrow = options.arrowSize! > options.height! / 8
@@ -163,51 +188,59 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Visibility(
-      visible: widget.options!.tooltip,
-      child: Positioned(
-        left: left,
-        top: top,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: options.width!,
-            maxHeight: options.height!,
-            minHeight: 0,
-            minWidth: 0,
-          ),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            reverseDuration: const Duration(milliseconds: 100),
-            transitionBuilder: (child, animation) => ScaleTransition(
-              scale: animation,
-              child: child,
-            ),
-            child: widget.selected == null
-                ? Container(color: Colors.transparent)
-                : Stack(
-                    children: [
-                      Container(
-                        width: options.width!,
-                        height: options.height!,
-                        decoration: BoxDecoration(
-                          color: options.color!,
-                          borderRadius: borderRadius,
-                        ),
-                        child: options.child,
-                      ),
-                      CustomPaint(
-                        painter: _ArrowPainter(
-                          mode: mode,
-                          options: options,
-                          arrow: arrow,
-                        ),
-                      ),
-                    ],
+    return ValueListenableBuilder<TagItem?>(
+        valueListenable: selected,
+        builder: (
+          BuildContext context,
+          TagItem? item,
+          Widget? child,
+        ) {
+          return Visibility(
+            visible: widget.options!.tooltip,
+            child: Positioned(
+              left: left,
+              top: top,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: options.width!,
+                  maxHeight: options.height!,
+                  minHeight: 0,
+                  minWidth: 0,
+                ),
+                child: AnimatedSwitcher(
+                  duration: Duration(milliseconds: options.duration),
+                  reverseDuration: Duration.zero,
+                  transitionBuilder: (child, animation) => ScaleTransition(
+                    scale: animation,
+                    child: child,
                   ),
-          ),
-        ),
-      ),
-    );
+                  child: item == null
+                      ? Container(color: Colors.transparent)
+                      : Stack(
+                          children: [
+                            Container(
+                              width: options.width!,
+                              height: options.height!,
+                              decoration: BoxDecoration(
+                                color: options.color!,
+                                borderRadius: borderRadius,
+                              ),
+                              child: options.child,
+                            ),
+                            CustomPaint(
+                              painter: _ArrowPainter(
+                                mode: mode,
+                                options: options,
+                                arrow: arrow,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+            ),
+          );
+        });
   }
 }
 

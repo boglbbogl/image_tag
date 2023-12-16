@@ -31,6 +31,12 @@ class _ExampleImageTagState extends State<ExampleImageTag> {
     });
   }
 
+  void _remove(TagItem item) {
+    setState(() {
+      items = List.from(items)..remove(item);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,25 +50,14 @@ class _ExampleImageTagState extends State<ExampleImageTag> {
             tagItems: items,
             image: Image.network(
               "https://velog.velcdn.com/images/tygerhwang/post/ff4112ae-3b2e-4e88-82a3-1f37e026863a/image.png",
-              // width: 100,
-              // height: 100,
-              // "https://velog.velcdn.com/images/tygerhwang/post/11512c89-ada4-47d3-a71e-286a37932d16/image.avif",
             ),
             // onTagLongTap: _add,
             onTap: _add,
-            // onLongTap: _add,
             onTagUpdate: _update,
-            // onTagLongTap: (_) {},
             // onTagTap: (_) {},
             options: TagTooltipOptions(
                 color: Colors.white.withOpacity(0.8),
-                // duration: 200,
-                child: Container(
-                  width: 30,
-                  height: 30,
-                  color: Colors.transparent,
-                  child: Text("123213123"),
-                )),
+                child: const Text("123213123")),
           ),
         ],
       ),

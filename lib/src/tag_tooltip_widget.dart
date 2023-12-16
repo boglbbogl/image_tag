@@ -215,14 +215,14 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
                       ? Container(color: Colors.transparent)
                       : Stack(
                           children: [
-                            Container(
-                              width: options.width!,
-                              height: options.height!,
-                              decoration: BoxDecoration(
+                            ClipRRect(
+                              borderRadius: borderRadius,
+                              child: Container(
+                                width: options.width!,
+                                height: options.height!,
                                 color: options.color!,
-                                borderRadius: borderRadius,
+                                child: options.child,
                               ),
-                              child: options.child,
                             ),
                             CustomPaint(
                               painter: _ArrowPainter(

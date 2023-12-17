@@ -21,7 +21,7 @@ class TagTooltipOptions {
     this.color,
     this.child,
     this.arrowSize,
-    this.duration = 150,
+    this.duration = 100,
     this.transitionBuilder,
   });
 }

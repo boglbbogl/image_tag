@@ -1,6 +1,5 @@
+import 'package:example/example/simple/example_simple_image_tag.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:image_tag/image_tag.dart';
 
 void main() {
   runApp(const MaterialApp(
@@ -8,59 +7,75 @@ void main() {
   ));
 }
 
-class ExampleImageTag extends StatefulWidget {
+class ExampleImageTag extends StatelessWidget {
   const ExampleImageTag({super.key});
-
-  @override
-  State<ExampleImageTag> createState() => _ExampleImageTagState();
-}
-
-class _ExampleImageTagState extends State<ExampleImageTag> {
-  List<TagItem> items = [];
-
-  void _add(TagItem item) {
-    HapticFeedback.mediumImpact();
-    setState(() {
-      items = List.from(items)..add(item);
-    });
-  }
-
-  void _update(List<TagItem> items, TagItem item) {
-    setState(() {
-      this.items = items;
-    });
-  }
-
-  void _remove(TagItem item) {
-    setState(() {
-      items = List.from(items)..remove(item);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromRGBO(65, 65, 65, 1),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color.fromRGBO(45, 45, 45, 1),
+        title: const Text(
+          "Image Tag",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+            color: Colors.amber,
+          ),
+        ),
       ),
-      body: Column(
+      body: ListView(
         children: [
-          ImageTag(
-            debug: true,
-            tagItems: items,
-            image: Image.network(
-              "https://velog.velcdn.com/images/tygerhwang/post/ff4112ae-3b2e-4e88-82a3-1f37e026863a/image.png",
-            ),
-            // onTagLongTap: _add,
-            onTap: _add,
-            onTagUpdate: _update,
-            // onTagTap: (_) {},
-            options: TagTooltipOptions(
-                color: Colors.white.withOpacity(0.8),
-                child: const Text("123213123")),
+          const SizedBox(height: 24),
+          _button(
+            context,
+            "[Simple] Image Tag",
+            const ExampleSimpleImageTag(),
+          ),
+          _button(
+            context,
+            "[PageView] Image Tag",
+            const ExampleSimpleImageTag(),
+          ),
+          _button(
+            context,
+            "[Custom] Image Tag",
+            const ExampleSimpleImageTag(),
           ),
         ],
       ),
     );
   }
+
+  GestureDetector _button(
+    BuildContext context,
+    String title,
+    Widget widget,
+  ) =>
+      GestureDetector(
+        onTap: () => Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => widget)),
+        child: Container(
+          width: MediaQuery.of(context).size.width,
+          height: 50,
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: const Color.fromRGBO(45, 45, 45, 1),
+          ),
+          padding: const EdgeInsets.only(left: 24),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.amber,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ),
+      );
 }

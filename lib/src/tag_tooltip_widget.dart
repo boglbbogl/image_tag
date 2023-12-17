@@ -62,15 +62,16 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
 
   void _setOptions() {
     options = TagTooltipOptions(
+      tooltip: widget.options != null ? widget.options!.tooltip : true,
       width: widget.options?.width ?? widget.size.width * 0.3,
       height: widget.options?.height ?? widget.size.width * 0.15,
       margin: widget.options?.margin ?? 4,
       arrowSize: widget.options?.arrowSize ?? 7,
       radius: widget.options?.radius ?? 8,
       color: widget.options?.color ?? Colors.white70,
-      duration: widget.options!.duration,
-      transitionBuilder: widget.options!.transitionBuilder,
-      child: widget.options!.child,
+      duration: widget.options != null ? widget.options!.duration : 100,
+      transitionBuilder: widget.options?.transitionBuilder,
+      child: widget.options?.child,
     );
     if (options.height! < options.width!) {
       arrow = options.arrowSize! > options.height! / 8
@@ -192,7 +193,7 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
           Widget? child,
         ) {
           return Visibility(
-            visible: widget.options!.tooltip,
+            visible: options.tooltip,
             child: Positioned(
               left: left,
               top: top,

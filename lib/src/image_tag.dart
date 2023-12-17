@@ -60,7 +60,6 @@ class _ImageTagState extends State<ImageTag> {
     super.initState();
     _imageListener();
     _setTagWidget();
-    _setTagItem();
     _setTooltipOptions();
   }
 
@@ -91,6 +90,7 @@ class _ImageTagState extends State<ImageTag> {
             RenderBox renderbox =
                 widgetKey.currentContext!.findRenderObject() as RenderBox;
             widgetSize = Size(renderbox.size.width, renderbox.size.height);
+            _setTagItem();
           }
         });
       }));

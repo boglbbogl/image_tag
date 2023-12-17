@@ -38,10 +38,10 @@ class _ExampleSimpleImageTagState extends State<ExampleSimpleImageTag> {
           ),
         ),
         title: const Text(
-          "Simple Tag",
+          "Simple",
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 24,
+            fontSize: 20,
             color: Colors.amber,
           ),
         ),
@@ -63,7 +63,7 @@ class _ExampleSimpleImageTagState extends State<ExampleSimpleImageTag> {
             options: TagTooltipOptions(
                 width: 60,
                 height: 40,
-                color: Colors.red.withOpacity(0.8),
+                color: Colors.amber.withOpacity(0.8),
                 child: const Align(
                   alignment: Alignment.center,
                   child: Text(
@@ -122,7 +122,20 @@ class _ExampleSimpleTagWidgetState extends State<ExampleSimpleTagWidget> {
               tagItems: items,
               onTap: _addTag,
               onTagUpdate: (List<TagItem> items, _) => _updateTag(items),
-              options: const TagTooltipOptions(tooltip: false),
+              options: TagTooltipOptions(
+                  width: 60,
+                  height: 40,
+                  color: Colors.amber.withOpacity(0.8),
+                  child: const Align(
+                    alignment: Alignment.center,
+                    child: Text(
+                      "Item",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  )),
             ),
           ),
           Positioned(

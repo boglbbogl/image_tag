@@ -103,6 +103,8 @@ class _ImageTagState extends State<ImageTag> {
     return TagItem(x: x, y: y, child: tagWidget);
   }
 
+  void _onTapDown(TapDownDetails details) => tapDownDetails = details;
+
   void _onLongTap(LongPressStartDetails details) {
     if (widgetSize != null) {
       TagItem item = _addTag(details.localPosition);
@@ -114,10 +116,13 @@ class _ImageTagState extends State<ImageTag> {
         widget.customLongTap!(item.x, item.y, details.localPosition);
         _log("[onLongTap] x : ${item.x}, y : ${item.y}");
       }
+      if (widget.onLongTap != null || widget.customLongTap != null) {
+        selected.value = selected.value == null
+            ? null
+            : item.copyWith(child: item.child ?? tagWidget);
+      }
     }
   }
-
-  void _onTapDown(TapDownDetails details) => tapDownDetails = details;
 
   void _onTap() {
     if (widgetSize != null && tapDownDetails != null) {
@@ -130,7 +135,11 @@ class _ImageTagState extends State<ImageTag> {
         widget.customTap!(item.x, item.y, tapDownDetails!.localPosition);
         _log("[onTap] x : ${item.x}, y : ${item.y}");
       }
-      selected.value = null;
+      if (!(widget.onLongTap != null || widget.customLongTap != null)) {
+        selected.value = selected.value == null
+            ? null
+            : item.copyWith(child: item.child ?? tagWidget);
+      }
     }
   }
 

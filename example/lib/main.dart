@@ -1,3 +1,4 @@
+import 'package:example/example/pageview/example_pageview_image_tag.dart';
 import 'package:example/example/simple/example_simple_image_tag.dart';
 import 'package:flutter/material.dart';
 
@@ -30,17 +31,17 @@ class ExampleImageTag extends StatelessWidget {
           const SizedBox(height: 24),
           _button(
             context,
-            "[Simple] Image Tag",
+            "Simple",
             const ExampleSimpleImageTag(),
           ),
           _button(
             context,
-            "[PageView] Image Tag",
-            const ExampleSimpleImageTag(),
+            "PageView",
+            const ExamplePageviewImageTag(),
           ),
           _button(
             context,
-            "[Custom] Image Tag",
+            "Custom",
             const ExampleSimpleImageTag(),
           ),
         ],

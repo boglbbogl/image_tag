@@ -8,6 +8,7 @@ class ImageTag extends StatefulWidget {
   final bool debug;
   final Image image;
   final List<TagItem> tagItems;
+  final TagItem? current;
   final TagTooltipOptions? options;
   final Function(TagItem)? onTap;
   final Function(TagItem)? onLongTap;
@@ -19,11 +20,13 @@ class ImageTag extends StatefulWidget {
   final Function(double, double, int)? customTagUpdate;
   final Function(double, double, int)? customTagTap;
   final Function(double, double, int)? customTagLongTap;
+  final Function(TagItem?)? onListener;
   const ImageTag({
     super.key,
     this.debug = false,
     required this.image,
     required this.tagItems,
+    this.current,
     this.options,
     this.onTap,
     this.onLongTap,
@@ -35,6 +38,7 @@ class ImageTag extends StatefulWidget {
     this.customTagUpdate,
     this.customTagTap,
     this.customTagLongTap,
+    this.onListener,
   });
 
   @override
@@ -59,6 +63,7 @@ class _ImageTagState extends State<ImageTag> {
   void initState() {
     super.initState();
     _imageListener();
+    _setCurrentItem();
     _setTagWidget();
     _setTooltipOptions();
   }
@@ -67,6 +72,7 @@ class _ImageTagState extends State<ImageTag> {
   void didUpdateWidget(covariant ImageTag oldWidget) {
     super.didUpdateWidget(oldWidget);
     _imageListener();
+    _setCurrentItem();
     _setTagWidget();
     _setTooltipOptions();
     _setTagItem();
@@ -77,6 +83,8 @@ class _ImageTagState extends State<ImageTag> {
   void _setTagItem() => tagItems.value = widget.tagItems;
 
   void _setTagWidget() => tagWidget = const TagContainer();
+
+  void _setCurrentItem() => selected.value = widget.current;
 
   void _imageListener() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -116,11 +124,6 @@ class _ImageTagState extends State<ImageTag> {
         widget.customLongTap!(item.x, item.y, details.localPosition);
         _log("[onLongTap] x : ${item.x}, y : ${item.y}");
       }
-      if (widget.onLongTap != null || widget.customLongTap != null) {
-        selected.value = selected.value == null
-            ? null
-            : item.copyWith(child: item.child ?? tagWidget);
-      }
     }
   }
 
@@ -135,11 +138,6 @@ class _ImageTagState extends State<ImageTag> {
         widget.customTap!(item.x, item.y, tapDownDetails!.localPosition);
         _log("[onTap] x : ${item.x}, y : ${item.y}");
       }
-      if (!(widget.onLongTap != null || widget.customLongTap != null)) {
-        selected.value = selected.value == null
-            ? null
-            : item.copyWith(child: item.child ?? tagWidget);
-      }
     }
   }
 
@@ -153,9 +151,7 @@ class _ImageTagState extends State<ImageTag> {
       widget.customTagTap!(item.x, item.y, index);
       _log("[onTagTap] x : ${item.x}, y : ${item.y}, index : $index");
     }
-    if (!(widget.onTagLongTap != null || widget.customTagLongTap != null)) {
-      selected.value = item.copyWith(child: item.child ?? tagWidget);
-    }
+    _onListener(item);
   }
 
   void _onTagLongTap(int index) {
@@ -168,9 +164,7 @@ class _ImageTagState extends State<ImageTag> {
       widget.customTagLongTap!(item.x, item.y, index);
       _log("[onTagLongTap] x : ${item.x}, y : ${item.y}, index : $index");
     }
-    if (widget.onTagLongTap != null || widget.customTagLongTap != null) {
-      selected.value = item.copyWith(child: item.child ?? tagWidget);
-    }
+    _onListener(item);
   }
 
   void _onTagUpdate(DragUpdateDetails details, int index) {
@@ -191,21 +185,22 @@ class _ImageTagState extends State<ImageTag> {
         > 1 => 1,
         _ => dy / widgetSize!.height,
       };
-      item = item.copyWith(x: x, y: y, child: tagWidget);
+      item = item.copyWith(x: x, y: y, child: item.child ?? tagWidget);
       items = List.from(items)
         ..removeAt(index)
         ..insert(index, item);
 
-      selected.value = null;
-
       if (widget.onTagUpdate != null) {
         widget.onTagUpdate!(items, item);
         _log(
-            "[onTagUpdate] items : ${items.length}, ${item.copyWith(x: x, y: y, child: tagWidget)}");
+            "[onTagUpdate] items : ${items.length}, ${item.copyWith(x: x, y: y, child: item.child ?? tagWidget)}");
       }
       if (widget.customTagUpdate != null) {
         widget.customTagUpdate!(x, y, index);
         _log("[onTagUpdate] x : $x, y : $y, index : $index");
+      }
+      if (!(widget.onTagUpdate == null && widget.customTagUpdate == null)) {
+        _onListener(null);
       }
     }
   }
@@ -216,6 +211,9 @@ class _ImageTagState extends State<ImageTag> {
     } else {
       previousSelectNo = null;
     }
+    if (!(widget.onTagUpdate == null && widget.customTagUpdate == null)) {
+      _onListener(null);
+    }
   }
 
   void _onTagUpdateEnd(
@@ -225,6 +223,13 @@ class _ImageTagState extends State<ImageTag> {
       selected.value = tagItems.value[previousSelectNo!];
     }
     previousSelectNo = null;
+    _onListener(selected.value);
+  }
+
+  void _onListener(TagItem? item) {
+    if (widget.onListener != null) {
+      widget.onListener!(item);
+    }
   }
 
   void _log(String log) {
@@ -233,7 +238,6 @@ class _ImageTagState extends State<ImageTag> {
         developer.log('\x1B[36m $log \x1B[0m');
       }
     }
-    ;
   }
 
   @override

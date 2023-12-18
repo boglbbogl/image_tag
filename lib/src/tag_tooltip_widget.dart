@@ -193,7 +193,7 @@ class _TagTooltipWidgetState extends State<TagTooltipWidget> {
           Widget? child,
         ) {
           return Visibility(
-            visible: options.tooltip,
+            visible: options.tooltip && (left != null && top != null),
             child: Positioned(
               left: left,
               top: top,

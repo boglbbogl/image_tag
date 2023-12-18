@@ -12,6 +12,7 @@ class _ExampleSimpleImageTagState extends State<ExampleSimpleImageTag> {
   final String url =
       "https://github.com/boglbbogl/image_tag/assets/75574246/9746d95a-07b6-4cfe-b471-d7971802c81d";
   List<TagItem> items = [];
+  TagItem? current;
 
   @override
   void initState() {
@@ -23,6 +24,8 @@ class _ExampleSimpleImageTagState extends State<ExampleSimpleImageTag> {
     List<TagItem> items = values.map((e) => e as TagItem).toList();
     setState(() => this.items = items);
   }
+
+  void _onListener(TagItem? item) => setState(() => current = item);
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +62,9 @@ class _ExampleSimpleImageTagState extends State<ExampleSimpleImageTag> {
                           tags: items,
                         )))
                 .then(_updateItems),
+            onListener: _onListener,
             tagItems: items,
+            current: current,
             options: TagTooltipOptions(
                 width: 60,
                 height: 40,

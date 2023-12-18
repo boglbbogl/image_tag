@@ -10,13 +10,16 @@ class ImageTag extends StatefulWidget {
   final List<TagItem> tagItems;
   final TagItem? current;
   final TagTooltipOptions? options;
+  final Alignment alignment;
   final Function(TagItem)? onTap;
   final Function(TagItem)? onLongTap;
+  final Function(TagItem)? onDoubleTap;
   final Function(List<TagItem>, TagItem)? onTagUpdate;
   final Function(TagItem)? onTagTap;
   final Function(TagItem)? onTagLongTap;
   final Function(double, double, Offset)? customTap;
   final Function(double, double, Offset)? customLongTap;
+  final Function(double, double, Offset)? customDoubleTap;
   final Function(double, double, int)? customTagUpdate;
   final Function(double, double, int)? customTagTap;
   final Function(double, double, int)? customTagLongTap;
@@ -28,13 +31,16 @@ class ImageTag extends StatefulWidget {
     required this.tagItems,
     this.current,
     this.options,
+    this.alignment = Alignment.center,
     this.onTap,
     this.onLongTap,
+    this.onDoubleTap,
     this.onTagUpdate,
     this.onTagTap,
     this.onTagLongTap,
     this.customTap,
     this.customLongTap,
+    this.customDoubleTap,
     this.customTagUpdate,
     this.customTagTap,
     this.customTagLongTap,
@@ -113,6 +119,22 @@ class _ImageTagState extends State<ImageTag> {
 
   void _onTapDown(TapDownDetails details) => tapDownDetails = details;
 
+  void _onDoubleTapDown(TapDownDetails details) => tapDownDetails = details;
+
+  void _onDoubleTap() {
+    if (widgetSize != null && tapDownDetails != null) {
+      TagItem item = _addTag(tapDownDetails!.localPosition);
+      if (widget.onDoubleTap != null) {
+        widget.onDoubleTap!(item);
+        _log("[onDoubleTap] $item");
+      }
+      if (widget.customDoubleTap != null) {
+        widget.customDoubleTap!(item.x, item.y, tapDownDetails!.localPosition);
+        _log("[customDoubleTap] x : ${item.x}, y : ${item.y}");
+      }
+    }
+  }
+
   void _onLongTap(LongPressStartDetails details) {
     if (widgetSize != null) {
       TagItem item = _addTag(details.localPosition);
@@ -122,7 +144,7 @@ class _ImageTagState extends State<ImageTag> {
       }
       if (widget.customLongTap != null) {
         widget.customLongTap!(item.x, item.y, details.localPosition);
-        _log("[onLongTap] x : ${item.x}, y : ${item.y}");
+        _log("[customLongTap] x : ${item.x}, y : ${item.y}");
       }
     }
   }
@@ -136,7 +158,7 @@ class _ImageTagState extends State<ImageTag> {
       }
       if (widget.customTap != null) {
         widget.customTap!(item.x, item.y, tapDownDetails!.localPosition);
-        _log("[onTap] x : ${item.x}, y : ${item.y}");
+        _log("[customTap] x : ${item.x}, y : ${item.y}");
       }
     }
   }
@@ -149,7 +171,7 @@ class _ImageTagState extends State<ImageTag> {
     }
     if (widget.customTagTap != null) {
       widget.customTagTap!(item.x, item.y, index);
-      _log("[onTagTap] x : ${item.x}, y : ${item.y}, index : $index");
+      _log("[customTagTap] x : ${item.x}, y : ${item.y}, index : $index");
     }
     _onListener(item);
   }
@@ -162,7 +184,7 @@ class _ImageTagState extends State<ImageTag> {
     }
     if (widget.customTagLongTap != null) {
       widget.customTagLongTap!(item.x, item.y, index);
-      _log("[onTagLongTap] x : ${item.x}, y : ${item.y}, index : $index");
+      _log("[customTagLongTap] x : ${item.x}, y : ${item.y}, index : $index");
     }
     _onListener(item);
   }
@@ -197,7 +219,7 @@ class _ImageTagState extends State<ImageTag> {
       }
       if (widget.customTagUpdate != null) {
         widget.customTagUpdate!(x, y, index);
-        _log("[onTagUpdate] x : $x, y : $y, index : $index");
+        _log("[customTagUpdate] x : $x, y : $y, index : $index");
       }
       if (!(widget.onTagUpdate == null && widget.customTagUpdate == null)) {
         _onListener(null);
@@ -242,73 +264,78 @@ class _ImageTagState extends State<ImageTag> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: widgetSize?.width,
-      height: widgetSize?.height,
-      child: ValueListenableBuilder<List<TagItem>>(
-          valueListenable: tagItems,
-          builder: (
-            BuildContext context,
-            List<TagItem> items,
-            Widget? child,
-          ) {
-            return Stack(
-              children: [
-                GestureDetector(
-                  key: widgetKey,
-                  onTap: _onTap,
-                  onTapDown: _onTapDown,
-                  onLongPressStart: _onLongTap,
-                  child: SizedBox(
-                    width: widgetSize?.width,
-                    height: widgetSize?.height,
-                    child: widget.image,
+    return Align(
+      alignment: widget.alignment,
+      child: SizedBox(
+        width: widgetSize?.width,
+        height: widgetSize?.height,
+        child: ValueListenableBuilder<List<TagItem>>(
+            valueListenable: tagItems,
+            builder: (
+              BuildContext context,
+              List<TagItem> items,
+              Widget? child,
+            ) {
+              return Stack(
+                children: [
+                  GestureDetector(
+                    key: widgetKey,
+                    onTap: _onTap,
+                    onTapDown: _onTapDown,
+                    onLongPressStart: _onLongTap,
+                    onDoubleTap: _onDoubleTap,
+                    onDoubleTapDown: _onDoubleTapDown,
+                    child: SizedBox(
+                      width: widgetSize?.width,
+                      height: widgetSize?.height,
+                      child: widget.image,
+                    ),
                   ),
-                ),
-                if (widgetSize != null) ...[
-                  ...List.generate(
-                      items.length,
-                      (index) => Positioned(
-                          left: (widgetSize!.width * items[index].x) -
-                              ((items[index].child ?? tagWidget)
-                                      .getSize(
-                                          MediaQuery.of(context).size.width)
-                                      .$1 /
-                                  2),
-                          top: (widgetSize!.height * items[index].y) -
-                              ((items[index].child ?? tagWidget)
-                                      .getSize(
-                                          MediaQuery.of(context).size.width)
-                                      .$2 /
-                                  2),
-                          child: GestureDetector(
-                            onLongPress: () => _onTagLongTap(index),
-                            onTap: () => _onTagTap(index),
-                            onPanUpdate: (DragUpdateDetails details) =>
-                                _onTagUpdate(details, index),
-                            onPanEnd: _onTagUpdateEnd,
-                            onPanStart: (_) => _onTagUpdateStart(index),
-                            child: items[index].child ?? tagWidget,
-                          ))),
+                  if (widgetSize != null) ...[
+                    ...List.generate(
+                        items.length,
+                        (index) => Positioned(
+                            left: (widgetSize!.width * items[index].x) -
+                                ((items[index].child ?? tagWidget)
+                                        .getSize(
+                                            MediaQuery.of(context).size.width)
+                                        .$1 /
+                                    2),
+                            top: (widgetSize!.height * items[index].y) -
+                                ((items[index].child ?? tagWidget)
+                                        .getSize(
+                                            MediaQuery.of(context).size.width)
+                                        .$2 /
+                                    2),
+                            child: GestureDetector(
+                              onLongPress: () => _onTagLongTap(index),
+                              onTap: () => _onTagTap(index),
+                              onPanUpdate: (DragUpdateDetails details) =>
+                                  _onTagUpdate(details, index),
+                              onPanEnd: _onTagUpdateEnd,
+                              onPanStart: (_) => _onTagUpdateStart(index),
+                              child: items[index].child ?? tagWidget,
+                            ))),
+                  ],
+                  if (widgetSize != null) ...[
+                    ValueListenableBuilder<TagItem?>(
+                        valueListenable: selected,
+                        builder: (
+                          BuildContext context,
+                          TagItem? tag,
+                          Widget? child,
+                        ) {
+                          return TagTooltipWidget(
+                            selected: tag,
+                            options: options,
+                            size: widgetSize!,
+                          );
+                        }),
+                  ],
                 ],
-                if (widgetSize != null) ...[
-                  ValueListenableBuilder<TagItem?>(
-                      valueListenable: selected,
-                      builder: (
-                        BuildContext context,
-                        TagItem? tag,
-                        Widget? child,
-                      ) {
-                        return TagTooltipWidget(
-                          selected: tag,
-                          options: options,
-                          size: widgetSize!,
-                        );
-                      }),
-                ],
-              ],
-            );
-          }),
+              );
+            }),
+      ),
     );
   }
 }

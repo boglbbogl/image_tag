@@ -26,7 +26,7 @@ class ImageTag extends StatefulWidget {
   final Function(TagItem?)? onListener;
   const ImageTag({
     super.key,
-    this.debug = false,
+    this.debug = true,
     required this.image,
     required this.tagItems,
     this.current,
@@ -191,11 +191,13 @@ class _ImageTagState extends State<ImageTag> {
 
   void _onTagUpdate(DragUpdateDetails details, int index) {
     if (widgetSize != null) {
+      double speed = options != null ? options!.speed : 2.0;
       List<TagItem> items = tagItems.value;
       TagItem item = items[index];
-      final double dx = (item.x * widgetSize!.width) + (details.delta.dx * 1.5);
+      final double dx =
+          (item.x * widgetSize!.width) + (details.delta.dx * speed);
       final double dy =
-          (item.y * widgetSize!.height) + (details.delta.dy * 1.5);
+          (item.y * widgetSize!.height) + (details.delta.dy * speed);
 
       final double x = switch (dx / widgetSize!.width) {
         < 0 => 0,

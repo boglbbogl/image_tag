@@ -35,6 +35,7 @@ class _ExamplePageviewImageTagState extends State<ExamplePageviewImageTag> {
   ];
   int verticalIndex = 0;
 
+  TagItem? horizontalCurrent;
   final List<String> horizontalImages = [
     "https://velog.velcdn.com/images/tygerhwang/post/05d8017e-417e-4d53-941b-4aacd852b6fc/image.jpg",
     "https://velog.velcdn.com/images/tygerhwang/post/3f7b9416-c520-469a-8fc0-83ed39f9ba9b/image.avif",
@@ -62,25 +63,42 @@ class _ExamplePageviewImageTagState extends State<ExamplePageviewImageTag> {
   }
 
   void _updateVerticalItems(Object? object, int index) {
-    List<dynamic> values = object as List<dynamic>;
-    List<TagItem> items = values.map((e) => e as TagItem).toList();
+    if (object != null) {
+      List<dynamic> values = object as List<dynamic>;
+      List<TagItem> items = values.map((e) => e as TagItem).toList();
 
-    setState(() {
-      verticalData[index] = verticalData[index].copyWith(items: items);
-      verticalCurrent = null;
-    });
+      setState(() {
+        verticalData[index] = verticalData[index].copyWith(items: items);
+        verticalCurrent = null;
+      });
+    }
+  }
+
+  void _updateHorizotalItems(Object? object, int index) {
+    if (object != null) {
+      List<dynamic> values = object as List<dynamic>;
+      setState(() {
+        horizontalData = values.map((e) => e as CustomTagItem).toList();
+        horizontalCurrent = null;
+      });
+    }
   }
 
   void _onVerticalListener(TagItem? item) =>
       setState(() => verticalCurrent = item);
+
+  void _onHorizontalListener(TagItem? item) =>
+      setState(() => horizontalCurrent = item);
 
   void _onVerticalChanged(int index) => setState(() {
         verticalIndex = index;
         verticalCurrent = null;
       });
 
-  void _onHorizontalChanged(int index) =>
-      setState(() => horizontalIndex = index);
+  void _onHorizontalChanged(int index) => setState(() {
+        horizontalIndex = index;
+        horizontalCurrent = null;
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -182,23 +200,40 @@ class _ExamplePageviewImageTagState extends State<ExamplePageviewImageTag> {
                     itemBuilder: (context, index) {
                       return ImageTag(
                         image: Image.network(horizontalImages[index]),
-                        onTap: (_) =>
-                            Navigator.of(context).push(MaterialPageRoute(
+                        onTap: (_) => Navigator.of(context)
+                            .push(MaterialPageRoute(
                                 builder: (_) => _ExampleHorizontalTagWidget(
                                       items: horizontalData,
                                       index: horizontalIndex,
-                                    ))),
+                                    )))
+                            .then(
+                                (value) => _updateHorizotalItems(value, index)),
+                        onListener: _onHorizontalListener,
                         tagItems: horizontalData[index].items,
+                        current: horizontalCurrent,
+                        options: TagTooltipOptions(
+                          arrowSize: 30,
+                          width: 50,
+                          height: 50,
+                          radius: 50,
+                          duration: 1000,
+                          transitionBuilder: (child, animation) =>
+                              FadeTransition(opacity: animation, child: child),
+                          color: horizontalCurrent != null
+                              ? Colors.accents[(horizontalCurrent!.arguments
+                                  as Map<String, dynamic>)["color"]]
+                              : null,
+                        ),
                       );
                     }),
                 Container(
                   alignment: Alignment.center,
                   child: Text(
                     "${horizontalIndex + 1}/${horizontalData.length}",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 60,
-                      color: Colors.black54,
+                      color: Colors.black.withOpacity(0.3),
                     ),
                   ),
                 ),
@@ -271,7 +306,7 @@ class __ExampleHorizontalTagWidgetState
   @override
   void initState() {
     super.initState();
-    items = widget.items;
+    items = [...widget.items];
     controller = PageController(initialPage: widget.index);
   }
 
@@ -283,23 +318,24 @@ class __ExampleHorizontalTagWidgetState
           items: [
             ...tag.items,
             item.copyWith(
+                arguments: {"color": colorIndex},
                 child: TagContainer(
-              width: 50,
-              height: 50,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(50),
-                  color: Colors.black87,
-                ),
-                child: Image.asset(
-                  "assets/images/tag_icon.png",
-                  width: 46,
-                  height: 46,
-                  color: Colors.accents[colorIndex],
-                ),
-              ),
-            ))
+                  width: 50,
+                  height: 50,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(50),
+                      color: Colors.black87,
+                    ),
+                    child: Image.asset(
+                      "assets/images/tag_icon.png",
+                      width: 46,
+                      height: 46,
+                      color: Colors.accents[colorIndex],
+                    ),
+                  ),
+                ))
           ],
         );
       });

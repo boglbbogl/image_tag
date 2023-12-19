@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class TagTooltipOptions {
   final bool tooltip;
+  final double speed;
   final double? width;
   final double? height;
   final double? margin;
@@ -14,6 +15,7 @@ class TagTooltipOptions {
 
   const TagTooltipOptions({
     this.tooltip = true,
+    this.speed = 2.0,
     this.width,
     this.height,
     this.margin,

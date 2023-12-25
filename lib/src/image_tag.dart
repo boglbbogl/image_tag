@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_tag/image_tag.dart';
@@ -191,7 +192,7 @@ class _ImageTagState extends State<ImageTag> {
 
   void _onTagUpdate(DragUpdateDetails details, int index) {
     if (widgetSize != null) {
-      double speed = options != null ? options!.speed : 2.0;
+      double speed = Platform.isIOS || Platform.isMacOS ? 1.0 : 2.0;
       List<TagItem> items = tagItems.value;
       TagItem item = items[index];
       final double dx =

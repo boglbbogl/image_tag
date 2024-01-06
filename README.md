@@ -59,30 +59,6 @@ ImageTag(
 );
 ```
 
-### TagItem
-
-```dart
-TagItem(
-  x: _x,
-  y: _y,
-  child: _child,
-  arguments: _data, 
-);
-class TagItem {
-  final double x;
-  final double y;
-  final TagContainer? child;
-  final Object? arguments;
-
-  const TagItem({
-    required this.x,
-    required this.y,
-    this.child,
-    this.arguments,
-  });
-}
-```
-
 ### TagTooltipOptions
 
 ```dart
@@ -105,9 +81,20 @@ TagTooltipOptions(
 
 ```dart
 TagContainer(
-  height: _height,
-  width: _width,
+  height: 60.0,
+  width: 100.0,
+  child: Container(color: Colors.black),
+);
+```
+
+### TagItem
+
+```dart
+TagItem(
+  x: _x,
+  y: _y,
   child: _child,
+  arguments: _data, 
 );
 ```
 

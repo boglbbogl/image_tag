@@ -1,39 +1,39 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# 🗨️ Image Tag
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages).
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages).
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
 
 ## Features
+- ImageTag
+- TagContainer
+- TagItem
+- TagTooltipOptions
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+-----------
 
-## Getting started
+## Support Platforms
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+- Flutter Android
+- Flutter iOS
+- Flutter Web
+- Flutter Desktop
+
+
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+**_Add the package to pubspec.yaml_**
 
-```dart
-const like = 'sample';
+```
+dependencies:
+  image_tag: ^<latest-version>
 ```
 
-## Additional information
+**_After that import the package_**
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+```
+import 'package:image_tag/image_tag.dart';
+```
+
+## Example
+
+
+Created by Tyger [Github](https://github.com/boglbbogl)

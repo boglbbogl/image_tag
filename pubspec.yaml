@@ -1,7 +1,7 @@
 name: image_tag
-description: A new Flutter package project.
+description: Awesome Image Tags !!
 version: 0.0.1
-homepage:
+homepage: https://github.com/boglbbogl/image_tag
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

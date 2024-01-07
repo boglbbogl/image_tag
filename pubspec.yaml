@@ -1,6 +1,6 @@
 name: image_tag
 description: Awesome Image Tags !!
-version: 0.0.1
+version: 0.0.2
 homepage: https://github.com/boglbbogl/image_tag
 
 environment:

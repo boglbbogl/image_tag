@@ -100,16 +100,31 @@ TagItem(
 
 ## Example
 
+
+
 ### Simple
 
 [Simple Example](https://github.com/boglbbogl/image_tag/tree/main/example/lib/example/simple)
+
+<table>
+  <tr>
+    <td><img alt="" src="https://github.com/boglbbogl/image_tag/assets/75574246/85a78204-401f-4e5c-8c89-f716323f5ca8" /></td>
+    <td><img alt="" src="https://github.com/boglbbogl/image_tag/assets/75574246/f3594905-6227-4cfb-8c11-754b278bb825" /></td>
+  <tr>
+</table>
+
+-------------------------
 
 ### PageView
 
 [PageView Example](https://github.com/boglbbogl/image_tag/tree/main/example/lib/example/pageview)
 
+-------------------------
+
 ### Custom
 
 [Custom Example](https://github.com/boglbbogl/image_tag/tree/main/example/lib/example/custom)
+
+-------------------------
 
 Created by Tyger [Github](https://github.com/boglbbogl)

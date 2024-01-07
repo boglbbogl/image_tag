@@ -101,15 +101,15 @@ TagItem(
 ## Example
 
 
+### Custom
 
-### Simple
-
-[Simple Example](https://github.com/boglbbogl/image_tag/tree/main/example/lib/example/simple)
+[Custom Example](https://github.com/boglbbogl/image_tag/tree/main/example/lib/example/custom)
 
 <table>
   <tr>
-    <td><img alt="" src="https://github.com/boglbbogl/image_tag/assets/75574246/85a78204-401f-4e5c-8c89-f716323f5ca8" /></td>
-    <td><img alt="" src="https://github.com/boglbbogl/image_tag/assets/75574246/f3594905-6227-4cfb-8c11-754b278bb825" /></td>
+    <td><img alt="" src="https://github.com/boglbbogl/image_tag/assets/75574246/65f78969-eab4-4d2b-86c9-7cb90c5f319e" /></td>
+    <td><img alt="" src="https://github.com/boglbbogl/image_tag/assets/75574246/5a89d537-9cdb-46a0-b7c2-f8cb8730ddbe" /></td>
+    <td><img alt="" src="https://github.com/boglbbogl/image_tag/assets/75574246/f1dd14c0-78af-4235-97ef-e17ffbd39a61" /></td>
   <tr>
 </table>
 
@@ -140,11 +140,16 @@ TagItem(
 
 -------------------------
 
-### Custom
+### Simple
 
-[Custom Example](https://github.com/boglbbogl/image_tag/tree/main/example/lib/example/custom)
+[Simple Example](https://github.com/boglbbogl/image_tag/tree/main/example/lib/example/simple)
 
-
+<table>
+  <tr>
+    <td><img alt="" src="https://github.com/boglbbogl/image_tag/assets/75574246/85a78204-401f-4e5c-8c89-f716323f5ca8" /></td>
+    <td><img alt="" src="https://github.com/boglbbogl/image_tag/assets/75574246/f3594905-6227-4cfb-8c11-754b278bb825" /></td>
+  <tr>
+</table>
 
 -------------------------
 

@@ -125,9 +125,12 @@ TagItem(
     <td><img alt="" src="https://github.com/boglbbogl/image_tag/assets/75574246/d696763e-ad28-4311-ba38-bc6dd71daab0" /></td>
   <tr>
 </table>
-
-![IMB_dGqfe5](https://github.com/boglbbogl/image_tag/assets/75574246/568197e5-d9f2-4210-9911-d1bed9a12138)
-![IMB_FvTHsU](https://github.com/boglbbogl/image_tag/assets/75574246/d696763e-ad28-4311-ba38-bc6dd71daab0)
+<table>
+  <tr>
+    <td><img alt="" src="https://github.com/boglbbogl/image_tag/assets/75574246/1993ba88-90b0-457d-9116-f21c127da32d" /></td>
+    <td><img alt="" src="https://github.com/boglbbogl/image_tag/assets/75574246/a024729b-725c-40b6-a175-2ccd91b64572" /></td>
+  <tr>
+</table>
 
 -------------------------
 
